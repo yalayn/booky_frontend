@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
 import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
+import { getBooks } from "../api/bookService";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -23,11 +24,30 @@ const CardContent = ({ children }) => {
   return <View style={styles.cardContent}>{children}</View>;
 };
 
+/*
+const fetchBooks = async () => {
+  try {
+    const listBooks = {};
+    const data = await getBooks();
+    Object.entries(data).forEach(([state, books]) => {
+      listBooks[state] = [];
+      books.forEach((book: any) => {
+        const title = `${book.title} - ${book.author}`;
+        listBooks[state].push(title);
+      });
+    });
+    console.log("1 **** listBooks", listBooks);
+    return listBooks;
+  } catch (error) {
+    console.error('Error al obtener libros:', error);
+  }
+};*/
+
 const BookTrackerMain = () => {
-  const [readingTime, setReadingTime] = useState(0);
-  const booksReading = ["Libro 1", "Libro 2"];
-  const wishlist     = ["Libro 3", "Libro 4"];
-  const booksRead    = ["Libro 5", "Libro 6"];
+  const [readingTime, setReadingTime]   = useState(0);
+  const [booksReading, setBooksReading] = useState([]);
+  const [wishlist, setWishlist]         = useState([]);
+  const [booksRead, setBooksRead]       = useState([]);
   const readingStats = [
     { day: "Lun", hours: 1 },
     { day: "Mar", hours: 2 },
@@ -35,6 +55,31 @@ const BookTrackerMain = () => {
     { day: "Jue", hours: 2 },
     { day: "Vie", hours: 3 },
   ];
+
+    // Fetch books and update booksReading
+  useEffect(() => {
+
+    const fetchBooks = async () => {
+      try {
+        const listBooks = {};
+        const data = await getBooks();
+        Object.entries(data).forEach(([state, books]) => {
+          listBooks[state] = [];
+          books.forEach((book: any) => {
+            const title = `${book.title} - ${book.author}`;
+            listBooks[state].push(title);
+          });
+        });
+        setWishlist(listBooks["to_read"]);
+        setBooksReading(listBooks["reading"]);
+        setBooksRead(listBooks["read"]);
+      } catch (error) {
+        console.error('Error al obtener libros:', error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -78,7 +123,7 @@ const BookTrackerMain = () => {
       {/* Lista de deseos */}
       <Card style={styles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>Lista de deseos</Text>
+          <Text style={styles.title}>Por leer</Text>
           {wishlist.map((book, index) => (
             <Text key={index} style={styles.item}>{book}</Text>
           ))}
@@ -88,7 +133,7 @@ const BookTrackerMain = () => {
       {/* Historial de lectura */}
       <Card style={styles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>Historial de lectura</Text>
+          <Text style={styles.title}>Leidos</Text>
           {booksRead.map((book, index) => (
             <Text key={index} style={styles.item}>{book}</Text>
           ))}
