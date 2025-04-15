@@ -4,8 +4,7 @@ import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
 import { useNavigation } from '@react-navigation/native';
-import { CardStyles } from "../styles/AppStyles"; 
-import HomeStyles from "../styles/HomeStyles"; 
+import { CardStyles } from "../styles/AppStyles";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -70,7 +69,7 @@ const BookTrackerMain = () => {
   }, []);
 
   return (
-    <ScrollView style={HomeStyles.container}>
+    <ScrollView style={styles.container}>
       {/* Resumen de progreso */}
       <Card style={CardStyles.cardSpacing}>
         <CardContent>
@@ -145,5 +144,12 @@ const BookTrackerMain = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingBlock:70,
+    padding:16,
+  }
+});
 
 export default BookTrackerMain;
