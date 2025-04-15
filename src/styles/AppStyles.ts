@@ -46,4 +46,62 @@ const AppStyles = StyleSheet.create({
   },
 });
 
-export default AppStyles;
+const CardStyles = StyleSheet.create({
+  container: {
+    paddingBlock:70,
+    padding:16,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    padding: 16,
+  },
+  cardSpacing: {
+    marginBottom: 16,
+  },
+  cardContent: {
+    flexDirection: "column",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#666",
+    marginBottom: 8,
+  },
+  item: {
+    color: "#444",
+    marginVertical: 4,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginVertical: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#007bff",
+  },
+  logButton: {
+    backgroundColor: "#007bff",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontWeight: "bold",
+  },
+});
+
+export { AppStyles, CardStyles };

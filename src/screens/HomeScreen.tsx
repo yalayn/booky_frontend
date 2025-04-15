@@ -3,47 +3,32 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from
 import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
+import { useNavigation } from '@react-navigation/native';
+import { CardStyles } from "../styles/AppStyles"; 
+import HomeStyles from "../styles/HomeStyles"; 
 
 const screenWidth = Dimensions.get("window").width;
 
 // Progress Component
 const Progress = ({ value }) => {
   return (
-    <View style={styles.progressContainer}>
-      <View style={[styles.progressBar, { width: `${value}%` }]} />
+    <View style={CardStyles.progressContainer}>
+      <View style={[CardStyles.progressBar, { width: `${value}%` }]} />
     </View>
   );
 };
 
 // Card Component
 const Card = ({ children, style }) => {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View style={[CardStyles.card, style]}>{children}</View>;
 };
 
 const CardContent = ({ children }) => {
-  return <View style={styles.cardContent}>{children}</View>;
+  return <View style={CardStyles.cardContent}>{children}</View>;
 };
 
-/*
-const fetchBooks = async () => {
-  try {
-    const listBooks = {};
-    const data = await getBooks();
-    Object.entries(data).forEach(([state, books]) => {
-      listBooks[state] = [];
-      books.forEach((book: any) => {
-        const title = `${book.title} - ${book.author}`;
-        listBooks[state].push(title);
-      });
-    });
-    console.log("1 **** listBooks", listBooks);
-    return listBooks;
-  } catch (error) {
-    console.error('Error al obtener libros:', error);
-  }
-};*/
-
 const BookTrackerMain = () => {
+  const navigation = useNavigation();
   const [readingTime, setReadingTime]   = useState(0);
   const [booksReading, setBooksReading] = useState([]);
   const [wishlist, setWishlist]         = useState([]);
@@ -56,7 +41,11 @@ const BookTrackerMain = () => {
     { day: "Vie", hours: 3 },
   ];
 
-    // Fetch books and update booksReading
+  const handleBookPress = (book) => {
+    navigation.navigate('BookDetail', { book });
+  };
+
+  // Fetch books and update booksReading
   useEffect(() => {
 
     const fetchBooks = async () => {
@@ -66,8 +55,7 @@ const BookTrackerMain = () => {
         Object.entries(data).forEach(([state, books]) => {
           listBooks[state] = [];
           books.forEach((book: any) => {
-            const title = `${book.title} - ${book.author}`;
-            listBooks[state].push(title);
+            listBooks[state].push(book);
           });
         });
         setWishlist(listBooks["to_read"]);
@@ -82,12 +70,12 @@ const BookTrackerMain = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={HomeStyles.container}>
       {/* Resumen de progreso */}
-      <Card style={styles.cardSpacing}>
+      <Card style={CardStyles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>Progreso de lectura</Text>
-          <Text style={styles.subtitle}>Horas leídas esta semana: {readingTime}h</Text>
+          <Text style={CardStyles.title}>Progreso de lectura</Text>
+          <Text style={CardStyles.subtitle}>Horas leídas esta semana: {readingTime}h</Text>
           <Progress value={(readingTime / 10) * 100} />
           <LineChart
             data={{
@@ -111,102 +99,51 @@ const BookTrackerMain = () => {
       </Card>
 
       {/* Libros en lectura */}
-      <Card style={styles.cardSpacing}>
+      <Card style={CardStyles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>En lectura</Text>
+          <Text style={CardStyles.title}>En lectura</Text>
           {booksReading.map((book, index) => (
-            <Text key={index} style={styles.item}>{book}</Text>
+            <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
+              <Text style={CardStyles.item}>{book.title} - {book.author}</Text>
+            </TouchableOpacity>
           ))}
         </CardContent>
       </Card>
 
       {/* Lista de deseos */}
-      <Card style={styles.cardSpacing}>
+      <Card style={CardStyles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>Por leer</Text>
+          <Text style={CardStyles.title}>Por leer</Text>
           {wishlist.map((book, index) => (
-            <Text key={index} style={styles.item}>{book}</Text>
+            <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
+              <Text style={CardStyles.item}>{book.title} - {book.author}</Text>
+            </TouchableOpacity>
           ))}
         </CardContent>
       </Card>
 
       {/* Historial de lectura */}
-      <Card style={styles.cardSpacing}>
+      <Card style={CardStyles.cardSpacing}>
         <CardContent>
-          <Text style={styles.title}>Leidos</Text>
+          <Text style={CardStyles.title}>Leidos</Text>
           {booksRead.map((book, index) => (
-            <Text key={index} style={styles.item}>{book}</Text>
+            <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
+              <Text style={CardStyles.item}>{book.title} - {book.author}</Text>
+            </TouchableOpacity>
           ))}
         </CardContent>
       </Card>
 
       {/* Registro de tiempo de lectura */}
       <TouchableOpacity
-        style={styles.logButton}
+        style={CardStyles.logButton}
         onPress={() => setReadingTime(readingTime + 0.5)}
       >
         <Timer color="white" />
-        <Text style={styles.logButtonText}>Registrar 30 minutos</Text>
+        <Text style={CardStyles.logButtonText}>Registrar 30 minutos</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    padding: 16,
-  },
-  cardSpacing: {
-    marginBottom: 16,
-  },
-  cardContent: {
-    flexDirection: "column",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: "#666",
-    marginBottom: 8,
-  },
-  item: {
-    color: "#444",
-    marginVertical: 4,
-  },
-  progressContainer: {
-    height: 8,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    overflow: "hidden",
-    marginVertical: 8,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: "#007bff",
-  },
-  logButton: {
-    backgroundColor: "#007bff",
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logButtonText: {
-    color: "white",
-    marginLeft: 8,
-    fontWeight: "bold",
-  },
-});
 
 export default BookTrackerMain;
