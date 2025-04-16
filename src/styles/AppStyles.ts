@@ -4,10 +4,19 @@ import { Colors as DefaultColors } from 'react-native/Libraries/NewAppScreen';
 // Define and export the Colors object
 export const Colors = {
   ...DefaultColors, // Include default colors from React Native
-  lighter: '#f3f3f3',
-  darker: '#1c1c1c',
-  primary: '#6200ee',
-  secondary: '#03dac6',
+  
+  // BG COLORS UI
+  lighter  : '#F0E8DF',
+  darker   : '#5A8B9E',
+  primary  : '#F2D582',
+  secondary: '#83C3CC',
+  tertiary : '#D9D6D2',
+  container: '#f5f5f5',
+  
+  // BG STATES USER BOOK
+  state_toread : '#F2B95D',
+  state_read   : '#F2798F',
+  state_reading: '#9A9DD9',
 };
 
 const AppStyles = StyleSheet.create({
