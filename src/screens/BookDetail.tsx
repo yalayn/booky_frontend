@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { CardStyles, Colors } from "../styles/AppStyles";
 import { Card, CardContent } from "../components/Card";
-import { Subtitles } from 'lucide-react-native';
 
 const LabelGenre = ({listGenre}) => {
     if (!listGenre || listGenre.length === 0) {
@@ -42,37 +41,39 @@ const BookDetail = ({ route }) => {
   const { book } = route.params;
   console.log(book);
   return (
-    <View style={styles.container}>
-      <LabelState bookState={book.state}></LabelState>
-      <Card style={CardStyles.cardSpacing}>
-        <CardContent>
-          <Text style={styles.title}>{book.title}</Text>
-          <LabelGenre listGenre={book.genre}></LabelGenre>
-          <Text style={[styles.bookDetail, styles.subtitles]}>{book.author}</Text>
-          {book.descriptions_short ? (
-          <Text style={styles.bookDetail}>{book.descriptions_short}</Text>
-          ) : null}
-        </CardContent>
-      </Card>
-      <Card style={CardStyles.cardSpacing}>
-        <CardContent>
-          <Text style={styles.bookDetail}>Puntuación: {book.rating}</Text>
-          <Text style={styles.bookDetail}>Reseña: {book.review || 'No disponible'}</Text>
-        </CardContent>
-      </Card>
-      <Card style={CardStyles.cardSpacing}>
-        <CardContent>
-          <Text style={styles.title}>Detalles</Text>
-          <Text style={styles.bookDetail}>Autor: {book.author}</Text>
-          <Text style={styles.bookDetail}>Editorial: {book.editorial}</Text>
-          <Text style={styles.bookDetail}>Fecha de publicación: {book.publication_year}</Text>
-          <Text style={[styles.bookDetail]}>ISBN: {book.isbn}</Text>
-          {book.descriptions_long ? (
-          <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
-          ) : null}
-        </CardContent>
-      </Card>
-    </View>
+    <ScrollView>
+      <View style={styles.container}>
+        <LabelState bookState={book.state}></LabelState>
+        <Card style={CardStyles.cardSpacing}>
+          <CardContent>
+            <Text style={styles.title}>{book.title}</Text>
+            <LabelGenre listGenre={book.genre}></LabelGenre>
+            <Text style={[styles.bookDetail, styles.subtitles]}>{book.author}</Text>
+            {book.descriptions_short ? (
+            <Text style={styles.bookDetail}>{book.descriptions_short}</Text>
+            ) : null}
+          </CardContent>
+        </Card>
+        <Card style={CardStyles.cardSpacing}>
+          <CardContent>
+            <Text style={styles.bookDetail}>Puntuación: {book.rating}</Text>
+            <Text style={styles.bookDetail}>Reseña: {book.review || 'No disponible'}</Text>
+          </CardContent>
+        </Card>
+        <Card style={CardStyles.cardSpacing}>
+          <CardContent>
+            <Text style={styles.title}>Detalles</Text>
+            <Text style={styles.bookDetail}>Autor: {book.author}</Text>
+            <Text style={styles.bookDetail}>Editorial: {book.editorial}</Text>
+            <Text style={styles.bookDetail}>Fecha de publicación: {book.publication_year}</Text>
+            <Text style={[styles.bookDetail]}>ISBN: {book.isbn}</Text>
+            {book.descriptions_long ? (
+            <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
+            ) : null}
+          </CardContent>
+        </Card>
+      </View>
+    </ScrollView>
   );
 };
 

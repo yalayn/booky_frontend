@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_CONFIG } from '../config/apiConfig';
 
 // Simulación de obtención de token (ajusta con AsyncStorage o contexto real)
-let accessToken: string | null = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA1NzgsInVzZXJuYW1lIjoieS5hbGF5bkBnbWFpbC5jb20iLCJpYXQiOjE3NDQ0OTk0NTgsImV4cCI6MTc0NDUwMzA1OH0.JQMp_UppzTFfvLXbwhGBldEbUDTUsA2T5i78uel01W0";
+let accessToken: string | null = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA1NzgsInVzZXJuYW1lIjoieS5hbGF5bkBnbWFpbC5jb20iLCJpYXQiOjE3NDQ4MDQ4MTgsImV4cCI6MTc0NDg5MTIxOH0.jFN7ne_cwxNZXEw649NVEeZUce8EA_xWaGX9KMdi260";
 
 export const setAccessToken = (token: string) => {
   accessToken = token;

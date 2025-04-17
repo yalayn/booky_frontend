@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image } from "react-native";
 import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
 import { useNavigation } from '@react-navigation/native';
-import { CardStyles } from "../styles/AppStyles";
+import { CardStyles, SectionListStyles, stylesBookCard } from "../styles/AppStyles";
 import { Card, CardContent } from "../components/Card";
+import { SectionList, SectionListContent } from "../components/SectionList";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -48,7 +49,21 @@ const ProgressSummary = ({ readingTime,readingStats }) => {
   );
 }
 
-const CardBookList = ({ title,bookList }) => {
+const SectionBookList = ({ title, bookList, onRegisterTime }) => {
+  return (
+    <SectionList style={SectionListStyles.cardSpacing}>
+      <SectionListContent>
+        <Text style={SectionListStyles.title}>{title}</Text>
+        {bookList.map((book, index) => (
+          <BookCard key={index} book={book} onRegisterTime={onRegisterTime} />
+        ))}
+      </SectionListContent>
+    </SectionList>
+  );
+}
+
+const BookCard = ({ index, book, onRegisterTime }) => {
+
 
   const navigation = useNavigation();
 
@@ -59,41 +74,30 @@ const CardBookList = ({ title,bookList }) => {
   return (
     <Card style={CardStyles.cardSpacing}>
       <CardContent>
-        <Text style={CardStyles.title}>{title}</Text>
-        {bookList.map((book, index) => (
-          <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
-            <Text style={CardStyles.item}>{book.title} - {book.author}</Text>
-          </TouchableOpacity>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-const BookCard = ({ book, onRegisterTime }) => {
-  return (
-    <Card style={CardStyles.cardSpacing}>
-      <CardContent>
         {/* Book Cover */}
-        <View style={styles.bookCardContainer}>
-          <View style={styles.bookCoverContainer}>
-            <Image
-              source={{ uri: book.coverUrl || 'https://via.placeholder.com/150' }} // Fallback image
-              style={styles.bookCover}
-            />
+        <View style={stylesBookCard.bookCardContainer}>
+          <View style={stylesBookCard.bookCoverContainer}>
+            <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
+              <Image
+                source={{ uri: book.coverUrl || 'https://via.placeholder.com/150' }} // Fallback image
+                style={stylesBookCard.bookCover}
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Book Details */}
-          <View style={styles.bookDetailsContainer}>
-            <Text style={styles.bookTitle}>{book.title}</Text>
-            <Text style={styles.bookAuthor}>Autor: {book.author}</Text>
+          <View style={stylesBookCard.bookDetailsContainer}>
+            <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
+              <Text style={stylesBookCard.bookTitle}>{book.title}</Text>
+            </TouchableOpacity>
+            <Text style={stylesBookCard.bookSubtitle}>{book.author}</Text>
 
             {/* Register Time Button */}
             <TouchableOpacity
               style={CardStyles.logButton}
               onPress={() => onRegisterTime(book)}
             >
-              <Text style={CardStyles.logButtonText}>Registrar tiempo</Text>
+              <Text style={CardStyles.logButtonText}>Registrar 30 min</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -103,6 +107,7 @@ const BookCard = ({ book, onRegisterTime }) => {
 };
 
 const BookTrackerMain = () => {
+  const navigation = useNavigation();
   const [readingTime, setReadingTime]   = useState(0);
   const [booksReading, setBooksReading] = useState([]);
   const [wishlist, setWishlist]         = useState([]);
@@ -114,6 +119,11 @@ const BookTrackerMain = () => {
     { day: "Jue", hours: 2 },
     { day: "Vie", hours: 3 },
   ];
+
+  const handleRegisterTime = (book) => {
+    console.log(`Tiempo registrado para el libro: ${book.title}`);
+    setReadingTime((prevTime) => prevTime + 0.5); // Add 30 minutes
+  };
 
   // Fetch books and update booksReading
   useEffect(() => {
@@ -141,35 +151,60 @@ const BookTrackerMain = () => {
 
   return (
     <ScrollView style={styles.container}>
+
+      {/* Header */}
+      <View style={CardStyles.cardSpacing}>
+        <Text style={CardStyles.title}>Home</Text>
+        <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
+      </View>
+
+      {/* Botones de Navegación */}
+      <View style={styles.navigationButtons}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Library')}
+        >
+          <Text style={styles.navButtonText}>Biblioteca</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Search')}
+        >
+          <Text style={styles.navButtonText}>Agregar</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Resumen de progreso */}
       <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
       
       {/* Libros en lectura */}
-      <CardBookList title="Leyendo" bookList={booksReading} />
-
-      {/* Lista de deseos */}
-      <CardBookList title="Por leer" bookList={wishlist} />
-      
-      {/* Historial de lectura */}
-      <CardBookList title="Leído" bookList={booksRead} />
-
-      {/* Registro de tiempo de lectura */}
-      <TouchableOpacity
-        style={CardStyles.logButton}
-        onPress={() => setReadingTime(readingTime + 0.5)}
-      >
-        <Timer color="white" />
-        <Text style={CardStyles.logButtonText}>Registrar 30 minutos</Text>
-      </TouchableOpacity>
+      <SectionBookList title="Leyendo" bookList={booksReading} onRegisterTime={handleRegisterTime} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingBlock:70,
-    padding:16,
-  }
+    paddingBlock: 70,
+    padding: 16,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  navButton: {
+    flex: 1,
+    marginHorizontal: 4,
+    backgroundColor: '#007bff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  navButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
 
 export default BookTrackerMain;

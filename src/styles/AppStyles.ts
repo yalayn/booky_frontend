@@ -113,4 +113,89 @@ const CardStyles = StyleSheet.create({
   },
 });
 
-export { AppStyles, CardStyles };
+const SectionListStyles = StyleSheet.create({
+  container: {
+    paddingBlock:70,
+    padding:16,
+  },
+  card: {
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    padding: 0,
+  },
+  cardSpacing: {
+    marginBottom: 16,
+  },
+  cardContent: {
+    flexDirection: "column",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#666",
+    marginBottom: 8,
+  },
+  item: {
+    color: "#444",
+    marginVertical: 4,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginVertical: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#007bff",
+  },
+  logButton: {
+    backgroundColor: "#007bff",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontWeight: "bold",
+  },
+});
+
+const stylesBookCard = StyleSheet.create({
+  bookCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookCoverContainer: {
+    marginRight: 16,
+  },
+  bookCover: {
+    width: 80,
+    height: 120,
+    borderRadius: 8,
+    backgroundColor: '#e0e0e0',
+  },
+  bookDetailsContainer: {
+    flex: 1,
+  },
+  bookTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  bookSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+});
+
+export { AppStyles, CardStyles, SectionListStyles, stylesBookCard };
