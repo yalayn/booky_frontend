@@ -14,9 +14,9 @@ export const Colors = {
   container: '#f5f5f5',
   
   // BG STATES USER BOOK
-  state_toread : '#F2B95D',
-  state_read   : '#F2798F',
-  state_reading: '#9A9DD9',
+  state_toread : '#A6A6A6',
+  state_reading: '#595959',
+  state_read   : '#0D0D0D',
 };
 
 const AppStyles = StyleSheet.create({
@@ -53,6 +53,21 @@ const AppStyles = StyleSheet.create({
   lightBackground: {
     backgroundColor: Colors.white,
   },
+  logButton: {
+    backgroundColor: "#403E3B",
+    borderWidth: 1,
+    borderColor: "#403E3B",
+    padding: 10,
+    borderRadius: 28,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontWeight: "bold",
+  }
 });
 
 const CardStyles = StyleSheet.create({
@@ -61,12 +76,13 @@ const CardStyles = StyleSheet.create({
     padding:16,
   },
   card: {
-    backgroundColor: "white",
+    // backgroundColor: "white",
+    borderBlockColor: "#ccc",
+    borderWidth: 1,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     padding: 16,
+    borderColor: "#ccc",
+    shadowColor: "transparent",
   },
   cardSpacing: {
     marginBottom: 16,
@@ -96,12 +112,14 @@ const CardStyles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: "#007bff",
+    backgroundColor: "#403E3B",
   },
   logButton: {
-    backgroundColor: "#007bff",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#403E3B",
+    borderWidth: 1,
+    borderColor: "#403E3B",
+    padding: 10,
+    borderRadius: 28,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -152,10 +170,10 @@ const SectionListStyles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: "#007bff",
+    backgroundColor: "#403E3B",
   },
   logButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#403E3B",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
@@ -181,6 +199,9 @@ const stylesBookCard = StyleSheet.create({
     width: 80,
     height: 120,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    shadowColor: '#000',
     backgroundColor: '#e0e0e0',
   },
   bookDetailsContainer: {
