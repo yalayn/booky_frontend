@@ -4,7 +4,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-nativ
 const SearchScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Buscar Libros</Text>
+      <Text style={styles.title}>Agregar</Text>
+      <Text style={styles.subtitle}>Buscar libro</Text>
       <TextInput
         style={styles.searchInput}
         placeholder="Escribe el título o autor del libro"
@@ -26,6 +27,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    paddingBottom: 8,
   },
   searchInput: {
     borderWidth: 1,
