@@ -3,7 +3,6 @@ import httpClient from './httpClient';
 
 export const getBooks = async () => {
   const response = await httpClient.get('/userbook/list_by_state');
-  console.log(" **** Response",response.data);
   return response.data;
 };
 
