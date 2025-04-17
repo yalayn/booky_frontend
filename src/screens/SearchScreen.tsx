@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { AppStyles } from '../styles/AppStyles';
 
 const SearchScreen = () => {
   return (
@@ -10,7 +11,7 @@ const SearchScreen = () => {
         style={styles.searchInput}
         placeholder="Escribe el título o autor del libro"
       />
-      <TouchableOpacity style={styles.searchButton}>
+      <TouchableOpacity style={AppStyles.logButton}>
         <Text style={styles.searchButtonText}>Buscar</Text>
       </TouchableOpacity>
     </View>
