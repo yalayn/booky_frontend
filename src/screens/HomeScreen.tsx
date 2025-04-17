@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { CardStyles, SectionListStyles, stylesBookCard } from "../styles/AppStyles";
 import { Card, CardContent } from "../components/Card";
 import { SectionList, SectionListContent } from "../components/SectionList";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -19,6 +20,47 @@ const Progress = ({ value }) => {
   );
 };
 
+const NavButtons = () => {
+    const navigation = useNavigation();
+    return (
+      <View style={styles.navigationButtons}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Library')}
+        >
+          <Text style={styles.navButtonText}>Biblioteca</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Search')}
+        >
+          <Text style={styles.navButtonText}>Agregar</Text>
+        </TouchableOpacity>
+      </View>
+    )
+}
+
+const BottomMenu = ({navigation}) => {
+  return (
+    <View style={StyleBottomMenu.bottomMenu}>
+        <TouchableOpacity
+          style={StyleBottomMenu.menuButton}
+          onPress={() => navigation.navigate("Library")}
+        >
+          <Icon name="book" size={24} color="#fff" />
+          <Text style={StyleBottomMenu.menuButtonText}>Biblioteca</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={StyleBottomMenu.menuButton}
+          onPress={() => navigation.navigate("Search")}
+        >
+          <Icon name="search" size={24} color="#fff" />
+          <Text style={StyleBottomMenu.menuButtonText}>Agregar</Text>
+        </TouchableOpacity>
+      </View>
+  )
+}
+
 const ProgressSummary = ({ readingTime,readingStats }) => {
   return (
       <Card style={CardStyles.cardSpacing}>
@@ -26,7 +68,7 @@ const ProgressSummary = ({ readingTime,readingStats }) => {
         <Text style={CardStyles.title}>Progreso de lectura</Text>
         <Text style={CardStyles.subtitle}>Horas leídas esta semana: {readingTime}h</Text>
         <Progress value={(readingTime / 10) * 100} />
-        <LineChart
+        {/* <LineChart
           data={{
             labels: readingStats.map((d) => d.day),
             datasets: [{ data: readingStats.map((d) => d.hours) }],
@@ -43,30 +85,26 @@ const ProgressSummary = ({ readingTime,readingStats }) => {
           }}
           bezier
           style={{ marginTop: 10, borderRadius: 8 }}
-        />
+        /> */}
       </CardContent>
     </Card>
   );
 }
 
-const SectionBookList = ({ title, bookList, onRegisterTime }) => {
+const SectionBookList = ({ title, bookList, onRegisterTime, navigation }) => {
   return (
     <SectionList style={SectionListStyles.cardSpacing}>
       <SectionListContent>
         <Text style={SectionListStyles.title}>{title}</Text>
         {bookList.map((book, index) => (
-          <BookCard key={index} book={book} onRegisterTime={onRegisterTime} />
+          <BookCard key={index} book={book} onRegisterTime={onRegisterTime} navigation={navigation} />
         ))}
       </SectionListContent>
     </SectionList>
   );
 }
 
-const BookCard = ({ index, book, onRegisterTime }) => {
-
-
-  const navigation = useNavigation();
-
+const BookCard = ({ index, book, onRegisterTime, navigation }) => {
   const handleBookPress = (book) => {
     navigation.navigate('BookDetail', { book });
   };
@@ -107,11 +145,10 @@ const BookCard = ({ index, book, onRegisterTime }) => {
 };
 
 const BookTrackerMain = () => {
+
   const navigation = useNavigation();
   const [readingTime, setReadingTime]   = useState(0);
   const [booksReading, setBooksReading] = useState([]);
-  const [wishlist, setWishlist]         = useState([]);
-  const [booksRead, setBooksRead]       = useState([]);
   const readingStats = [
     { day: "Lun", hours: 1 },
     { day: "Mar", hours: 2 },
@@ -138,9 +175,7 @@ const BookTrackerMain = () => {
             listBooks[state].push(book);
           });
         });
-        setWishlist(listBooks["to_read"]);
         setBooksReading(listBooks["reading"]);
-        setBooksRead(listBooks["read"]);
       } catch (error) {
         console.error('Error al obtener libros:', error);
       }
@@ -150,36 +185,26 @@ const BookTrackerMain = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer}>
+        
+        {/* Header */}
+        <View style={CardStyles.cardSpacing}>
+          <Text style={CardStyles.title}>Home</Text>
+          <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
+        </View>
 
-      {/* Header */}
-      <View style={CardStyles.cardSpacing}>
-        <Text style={CardStyles.title}>Home</Text>
-        <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
-      </View>
+        {/* Resumen de progreso */}
+        <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
 
-      {/* Botones de Navegación */}
-      <View style={styles.navigationButtons}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Library')}
-        >
-          <Text style={styles.navButtonText}>Biblioteca</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Search')}
-        >
-          <Text style={styles.navButtonText}>Agregar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Resumen de progreso */}
-      <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
+        {/* Libros en lectura */}
+        <SectionBookList title="En curso" bookList={booksReading} onRegisterTime={handleRegisterTime} navigation={navigation}/>
       
-      {/* Libros en lectura */}
-      <SectionBookList title="Leyendo" bookList={booksReading} onRegisterTime={handleRegisterTime} />
-    </ScrollView>
+      </ScrollView>
+      
+      {/* Navigation Buttons */}
+      <BottomMenu navigation={navigation}/>
+    </View>
   );
 };
 
@@ -187,6 +212,7 @@ const styles = StyleSheet.create({
   container: {
     paddingBlock: 70,
     padding: 16,
+    flex: 1,
   },
   navigationButtons: {
     flexDirection: 'row',
@@ -196,7 +222,7 @@ const styles = StyleSheet.create({
   navButton: {
     flex: 1,
     marginHorizontal: 4,
-    backgroundColor: '#007bff',
+    backgroundColor: '#403E3B',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -205,6 +231,30 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+});
+
+const StyleBottomMenu = StyleSheet.create({
+  bottomMenu: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#403E3B",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+    paddingVertical: 12,
+  },
+  menuButton: {
+    alignItems: "center",
+  },
+  menuButtonText: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 4,
+    marginBottom: 0,
+  }
 });
 
 export default BookTrackerMain;
