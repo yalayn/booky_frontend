@@ -7,8 +7,8 @@ export const Colors = {
   
   // BG COLORS UI
   lighter  : '#F0E8DF',
-  darker   : '#5A8B9E',
-  primary  : '#F2D582',
+  darker   : '#403E3B',
+  primary  : '#595959',
   secondary: '#83C3CC',
   tertiary : '#D9D6D2',
   container: '#f5f5f5',
