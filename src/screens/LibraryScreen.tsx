@@ -22,10 +22,11 @@ const SectionBookList = ({ title, bookList }) => {
 
 const LabelState = ({bookState}) => {
     const STATES_NAME = {
-        'read'   : 'Leído',
-        'to_read': 'Por leer',
-        'reading': 'Leyendo'
-    }
+      'to_read': 'Pendiente',
+      'reading': 'En curso',
+      'read'   : 'Terminado',
+    };
+    
     const STATE_BG_COLOR = {
         'read'   : styles.bgReadLabel,
         'to_read': styles.bgToReadLabel,
