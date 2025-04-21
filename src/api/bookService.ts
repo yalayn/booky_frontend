@@ -11,7 +11,7 @@ export const getBooks = async () => {
 //   return res.data;
 // };
 
-// export const updateBook = async (id: string, updates: any) => {
-//   const res = await axios.put(`${API_BASE}/books/${id}`, updates);
-//   return res.data;
-// };
+export const updateBook = async (updates: any) => {
+  const response = await httpClient.put('/userbook/update_state', updates);
+  return response.data;
+};
