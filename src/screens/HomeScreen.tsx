@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image
 import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { CardStyles, SectionListStyles, stylesBookCard } from "../styles/AppStyles";
 import { Card, CardContent } from "../components/Card";
 import { SectionList, SectionListContent } from "../components/SectionList";
@@ -163,26 +163,27 @@ const BookTrackerMain = () => {
   };
 
   // Fetch books and update booksReading
-  useEffect(() => {
-
-    const fetchBooks = async () => {
-      try {
-        const listBooks = {};
-        const data = await getBooks();
-        Object.entries(data).forEach(([state, books]) => {
-          listBooks[state] = [];
-          books.forEach((book: any) => {
-            listBooks[state].push(book);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchBooks = async () => {
+        try {
+          const listBooks = {};
+          const data = await getBooks();
+          Object.entries(data).forEach(([state, books]) => {
+            listBooks[state] = [];
+            books.forEach((book: any) => {
+              listBooks[state].push(book);
+            });
           });
-        });
-        setBooksReading(listBooks["reading"]);
-      } catch (error) {
-        console.error('Error al obtener libros:', error);
-      }
-    };
-
-    fetchBooks();
-  }, []);
+          setBooksReading(listBooks["reading"]);
+        } catch (error) {
+          console.error('Error al obtener libros:', error);
+        }
+      };
+    
+      fetchBooks();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
