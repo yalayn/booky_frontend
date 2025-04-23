@@ -4,7 +4,7 @@ import { CardStyles, Colors } from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
 import { Card, CardContent } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { updateBook } from '../api/bookService';
+import { updateStateBook, registerReviewBook } from '../api/bookService';
 import Toast from 'react-native-toast-message';
 import ReviewModal from '../components/ReviewModal';
 
@@ -99,7 +99,7 @@ const BookDetail = ({ route }) => {
   const [review, setReview] = useState(book.review || '');
 
   const handleStateChange = (newState) => {
-    updateBook({ book_id: book.book_id, new_state: newState })
+    updateStateBook({ book_id: book.book_id, new_state: newState })
       .then(() => {
         Toast.show({
           type: 'success',
@@ -119,7 +119,7 @@ const BookDetail = ({ route }) => {
   };
 
   const handleReviewSubmit = (newRating, newReview) => {
-    updateBook({ book_id: book.book_id, rating: newRating, review: newReview })
+    registerReviewBook({ book_id: book.book_id, rating: newRating, review_text: newReview })
       .then(() => {
         Toast.show({
           type: 'success',
@@ -153,16 +153,16 @@ const BookDetail = ({ route }) => {
             ) : null}
           </CardContent>
         </Card>
-        <Card style={CardStyles.cardSpacing}>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <Card style={CardStyles.cardSpacing}>
             <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.darker} /> </Text>
             <CardContent>
-              <Text style={styles.bookReview}>Puntuación: {book.rating}</Text>
+              <Text style={styles.bookReview}>Puntuación: {rating}</Text>
               <Text style={styles.bookReview}>Reseña:</Text>
-              <Text style={[styles.bookReview, styles.italics]}>"{book.review || 'No disponible'}"</Text>
+              <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
             </CardContent>
-          </TouchableOpacity>
-        </Card>
+          </Card>
+        </TouchableOpacity>
         <ReviewModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}

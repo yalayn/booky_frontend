@@ -4,6 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { Colors } from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
 import Icon from "react-native-vector-icons/FontAwesome";
+import CustomPicker from './CustomPicker';
 
 const ReviewModal = ({ visible, onClose, onSubmit, initialRating, initialReview }) => {
   const [rating, setRating] = useState(initialRating || 1);
@@ -28,35 +29,29 @@ const ReviewModal = ({ visible, onClose, onSubmit, initialRating, initialReview 
             </TouchableOpacity>
             <Text style={StylesModal.modalTitle}>Agregar Reseña</Text>
 
-            {/* Selector de Puntuación */}
-             {/* <Text style={styles.label}>Puntuación:</Text> */}
-            {/* <Picker
-                selectedValue={rating}
-                style={styles.picker}
-                onValueChange={(itemValue) => setRating(itemValue)}
-            >
-                {[1, 2, 3, 4, 5].map((value) => (
-                <Picker.Item key={value} label={`${value}`} value={value} />
-                ))}
-            </Picker> */}
-            {/* Textarea para la Reseña */}
+            {/* Reseña */}
             <Text style={StylesModal.modalLabelText}>Reseña:</Text>
             <TextInput
                 style={StylesModal.modalTexarea}
                 multiline={true}
                 numberOfLines={4}
                 placeholder="Escribe tu reseña aquí..."
+                placeholderTextColor={Colors.darker}
                 value={review}
                 onChangeText={setReview}
+                />
+            {/* Selector de Puntuación */}
+             <Text style={StylesModal.modalLabelText}>Puntuación:</Text>
+             <CustomPicker
+                selectedValue={rating}
+                onValueChange={(value) => setRating(value)}
+                options={[1, 2, 3, 4, 5]}
             />
             {/* Botones */}
             <View style={styles.buttonContainer}>
                 <TouchableOpacity style={StylesModal.modalOption} onPress={handleSubmit}>
                     <Text style={StylesModal.modalOptionText}>Guardar</Text>
                 </TouchableOpacity>
-                {/* <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-                <Text style={styles.buttonText}>Cancelar</Text>
-                </TouchableOpacity> */}
             </View>
         </View>
       </View>

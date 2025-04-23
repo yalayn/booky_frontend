@@ -11,7 +11,12 @@ export const getBooks = async () => {
 //   return res.data;
 // };
 
-export const updateBook = async (updates: any) => {
+export const updateStateBook = async (updates: any) => {
   const response = await httpClient.put('/userbook/update_state', updates);
+  return response.data;
+};
+
+export const registerReviewBook = async (updates: any) => {
+  const response = await httpClient.post('/userbook/register_review', updates);
   return response.data;
 };
