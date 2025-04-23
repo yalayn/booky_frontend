@@ -9,7 +9,7 @@ export const Colors = {
   lighter  : '#F0E8DF',
   darker   : '#403E3B',
   primary  : '#595959',
-  secondary: '#83C3CC',
+  secondary: '#0D0D0D',
   tertiary : '#D9D6D2',
   container: '#f5f5f5',
   

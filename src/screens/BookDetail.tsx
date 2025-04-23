@@ -157,8 +157,12 @@ const BookDetail = ({ route }) => {
           <Card style={CardStyles.cardSpacing}>
             <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.darker} /> </Text>
             <CardContent>
-              <Text style={styles.bookReview}>Puntuación: {rating}</Text>
-              <Text style={styles.bookReview}>Reseña:</Text>
+              <Text style={styles.bookReview}>Mi reseña:</Text>
+              <Text style={[styles.bookReview, styles.italics]}>
+                {Array.from({ length: rating }, (_, index) => (
+                  <Icon key={index} name="star" size={16} color={Colors.star} />
+                ))}
+              </Text>
               <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
             </CardContent>
           </Card>
