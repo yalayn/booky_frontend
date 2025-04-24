@@ -117,7 +117,7 @@ const BookCard = ({ index, book, onRegisterTime, navigation }) => {
           <View style={stylesBookCard.bookCoverContainer}>
             <TouchableOpacity key={index} onPress={() => handleBookPress(book)}>
               <Image
-                source={{ uri: book.coverUrl || 'https://via.placeholder.com/150' }} // Fallback image
+                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
                 style={stylesBookCard.bookCover}
               />
             </TouchableOpacity>
