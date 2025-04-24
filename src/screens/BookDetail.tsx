@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'react-native';
-import { CardStyles, Colors } from "../styles/AppStyles";
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, Image } from 'react-native';
+import { CardStyles, Colors, stylesBookCard } from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
 import { Card, CardContent } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -146,6 +146,10 @@ const BookDetail = ({ route }) => {
         <Card style={CardStyles.cardSpacing}>
           <CardContent>
             <Text style={styles.title}>{book.title}</Text>
+            <Image
+                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
+                style={stylesBookCard.bookCover}
+              />
             <LabelGenre listGenre={book.genre}></LabelGenre>
             <Text style={[styles.bookMain, styles.subtitles]}>{book.author}</Text>
             {book.descriptions_short ? (
