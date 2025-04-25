@@ -4,9 +4,9 @@ import { Timer } from "lucide-react-native";
 import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { CardStyles, SectionListStyles, stylesBookCard } from "../styles/AppStyles";
-import { Card, CardContent } from "../components/Card";
+import { CardStyles, SectionListStyles} from "../styles/AppStyles";
 import { SectionList, SectionListContent } from "../components/SectionList";
+import { Card, CardContent } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const screenWidth = Dimensions.get("window").width;
@@ -68,24 +68,6 @@ const ProgressSummary = ({ readingTime,readingStats }) => {
         <Text style={CardStyles.title}>Progreso de lectura</Text>
         <Text style={CardStyles.subtitle}>Horas leídas esta semana: {readingTime}h</Text>
         <Progress value={(readingTime / 10) * 100} />
-        {/* <LineChart
-          data={{
-            labels: readingStats.map((d) => d.day),
-            datasets: [{ data: readingStats.map((d) => d.hours) }],
-          }}
-          width={screenWidth - 48}
-          height={120}
-          chartConfig={{
-            backgroundColor: "#ffffff",
-            backgroundGradientFrom: "#f0f0f0",
-            backgroundGradientTo: "#f0f0f0",
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
-            labelColor: () => `#333`,
-          }}
-          bezier
-          style={{ marginTop: 10, borderRadius: 8 }}
-        /> */}
       </CardContent>
     </Card>
   );
@@ -104,14 +86,23 @@ const SectionBookList = ({ title, bookList, onRegisterTime, navigation }) => {
   );
 }
 
+const CardHome = ({ children, style }) => {
+    return <View style={[CardHomeStyles.card, style]}>{children}</View>;
+};
+  
+  
+const CardHomeContent = ({ children }) => {
+    return <View style={CardHomeStyles.cardContent}>{children}</View>;
+};
+
 const BookCard = ({ index, book, onRegisterTime, navigation }) => {
   const handleBookPress = (book) => {
     navigation.navigate('BookDetail', { book });
   };
 
   return (
-    <Card style={CardStyles.cardSpacing}>
-      <CardContent>
+    <CardHome style={CardHomeStyles.cardSpacing}>
+      <CardHomeContent>
         {/* Book Cover */}
         <View style={stylesBookCard.bookCardContainer}>
           <View style={stylesBookCard.bookCoverContainer}>
@@ -139,8 +130,8 @@ const BookCard = ({ index, book, onRegisterTime, navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </CardContent>
-    </Card>
+      </CardHomeContent>
+    </CardHome>
   );
 };
 
@@ -256,6 +247,98 @@ const StyleBottomMenu = StyleSheet.create({
     marginTop: 4,
     marginBottom: 0,
   }
+});
+
+const stylesBookCard = StyleSheet.create({
+  bookCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookCoverContainer: {
+    marginRight: 16,
+  },
+  bookCover: {
+    width: 100,
+    height: 150,
+    borderTopLeftRadius:12,
+    borderBottomLeftRadius:12,
+    borderColor: '#ccc',
+    shadowColor: '#000',
+    backgroundColor: '#e0e0e0',
+  },
+  bookDetailsContainer: {
+    flex: 1,
+  },
+  bookTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  bookSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+});
+
+const CardHomeStyles = StyleSheet.create({
+  container: {
+    paddingBlock:0,
+  },
+  card: {
+    // backgroundColor: "white",
+    borderBlockColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingEnd:16,
+    borderColor: "#ccc",
+    shadowColor: "transparent",
+  },
+  cardSpacing: {
+    marginBottom: 20,
+  },
+  cardContent: {
+    flexDirection: "column",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: "#666",
+    marginBottom: 8,
+  },
+  item: {
+    color: "#444",
+    marginVertical: 4,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginVertical: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#403E3B",
+  },
+  logButton: {
+    backgroundColor: "#403E3B",
+    borderWidth: 1,
+    borderColor: "#403E3B",
+    padding: 10,
+    borderRadius: 28,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontWeight: "bold",
+  },
 });
 
 export default BookTrackerMain;

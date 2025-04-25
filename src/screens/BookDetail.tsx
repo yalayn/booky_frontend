@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, Image } from 'react-native';
-import { CardStyles, Colors, stylesBookCard } from "../styles/AppStyles";
+import { CardStyles, Colors } from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
 import { Card, CardContent } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { updateStateBook, registerReviewBook } from '../api/bookService';
 import Toast from 'react-native-toast-message';
 import ReviewModal from '../components/ReviewModal';
+
+const TextDescriptionShort = ({text}) => {
+  return (
+    text ? (
+      <Text style={styles.bookMain}>{text}</Text>
+    ) : null
+  )
+}
 
 const LabelGenre = ({listGenre}) => {
     if (!listGenre || listGenre.length === 0) {
@@ -139,24 +147,46 @@ const BookDetail = ({ route }) => {
       });
   };
 
+  const CardHome = ({ children, style }) => {
+      return <View style={[CardHomeStyles.card, style]}>{children}</View>;
+  };
+    
+    
+  const CardHomeContent = ({ children }) => {
+      return <View style={CardHomeStyles.cardContent}>{children}</View>;
+  };
+
   return (
     <ScrollView>
       <View style={styles.container}>
+
+        {/* Label de estado */}
         <LabelState bookState={bookState} onStateChange={handleStateChange}></LabelState>
-        <Card style={CardStyles.cardSpacing}>
-          <CardContent>
-            <Text style={styles.title}>{book.title}</Text>
-            <Image
-                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
-                style={stylesBookCard.bookCover}
-              />
-            <LabelGenre listGenre={book.genre}></LabelGenre>
-            <Text style={[styles.bookMain, styles.subtitles]}>{book.author}</Text>
-            {book.descriptions_short ? (
-            <Text style={styles.bookMain}>{book.descriptions_short}</Text>
-            ) : null}
-          </CardContent>
-        </Card>
+
+        {/* Card principal */}
+        <CardHome style={CardHomeStyles.cardSpacing}>
+          <CardHomeContent>
+            {/* Book Cover */}
+            <View style={stylesBookCard.bookCardContainer}>
+              <View style={stylesBookCard.bookCoverContainer}>
+                <Image
+                  source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
+                  style={stylesBookCard.bookCover}
+                />
+              </View>
+    
+              {/* Book Details */}
+              <View style={stylesBookCard.bookDetailsContainer}>
+                  <Text style={stylesBookCard.bookTitle}>{book.title}</Text>
+                  <Text style={stylesBookCard.bookSubtitle}>{book.author}</Text>
+                  <LabelGenre listGenre={book.genre}></LabelGenre>
+                  <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
+              </View>
+            </View>
+          </CardHomeContent>
+        </CardHome>
+
+        {/* Card reseña */}
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Card style={CardStyles.cardSpacing}>
             <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.darker} /> </Text>
@@ -179,6 +209,7 @@ const BookDetail = ({ route }) => {
           initialReview={review}
         />
         
+        {/* Card detalles */}
         <Card style={CardStyles.cardSpacing}>
           <CardContent>
             <Text style={styles.title}>Detalles</Text>
@@ -204,6 +235,98 @@ const BookDetail = ({ route }) => {
   );
 };
 
+const stylesBookCard = StyleSheet.create({
+  bookCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookCoverContainer: {
+    marginRight: 16,
+  },
+  bookCover: {
+    width: 100,
+    height: 150,
+    borderTopLeftRadius:12,
+    borderBottomLeftRadius:12,
+    borderColor: '#ccc',
+    shadowColor: '#000',
+    backgroundColor: '#e0e0e0',
+  },
+  bookDetailsContainer: {
+    flex: 1,
+  },
+  bookTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  bookSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 1,
+  },
+});
+
+const CardHomeStyles = StyleSheet.create({
+  container: {
+    paddingBlock:0,
+  },
+  card: {
+    // backgroundColor: "white",
+    borderBlockColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingEnd:16,
+    borderColor: "#ccc",
+    shadowColor: "transparent",
+  },
+  cardSpacing: {
+    marginBottom: 20,
+  },
+  cardContent: {
+    flexDirection: "column",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: "#666",
+    marginBottom: 8,
+  },
+  item: {
+    color: "#444",
+    marginVertical: 4,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginVertical: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#403E3B",
+  },
+  logButton: {
+    backgroundColor: "#403E3B",
+    borderWidth: 1,
+    borderColor: "#403E3B",
+    padding: 10,
+    borderRadius: 28,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontWeight: "bold",
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -216,7 +339,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bookMain: {
-    fontSize: 18,
+    fontSize: 13,
     marginBottom: 8,
   },
   bookDetail: {
@@ -248,7 +371,7 @@ const styles = StyleSheet.create({
   },
   stateLabel: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   descriptionLong: {
