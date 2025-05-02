@@ -77,7 +77,35 @@ const StylesModal = StyleSheet.create({
         padding: 8,
         textAlignVertical: 'top',
         marginBottom: 16,
-    }
+    },
+    modalMessage: {
+      fontSize: 14,
+      color: Colors.lighter,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    modalButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    modalButton: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginHorizontal: 4,
+    },
+    modalCancelButton: {
+      backgroundColor: Colors.primary,
+    },
+    modalConfirmButton: {
+      backgroundColor: Colors.red,
+    },
+    modalButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
   });
 
   export default StylesModal;

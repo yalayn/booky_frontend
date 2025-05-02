@@ -5,8 +5,15 @@ import { Colors as DefaultColors } from 'react-native/Libraries/NewAppScreen';
 export const Colors = {
   ...DefaultColors, // Include default colors from React Native
   
+  red   : '#D9533D',
+  green : '#00FF00',
+  blue  : '#0000FF',
+  yellow: '#FFFF00',
+  orange: '#FFA500',
+
+  
   // BG COLORS UI
-  lighter  : '#F0E8DF',
+  lighter  : '#f5f5f5',
   darker   : '#403E3B',
   primary  : '#595959',
   secondary: '#0D0D0D',
