@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { getBooks } from "../api/bookService";
 import { SectionList, SectionListContent } from '../components/SectionList';
 import { Colors, SectionListStyles } from '../styles/AppStyles';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { TouchableOpacity, Image } from 'react-native';
 
 const SectionBookList = ({ title, bookList }) => {
@@ -90,25 +90,26 @@ const LibraryScreen = () => {
 
     const [listBooks, setlistBooks] = useState([]);
     
-    useEffect(() => {
+    useFocusEffect(
+        React.useCallback(() => {
+          const fetchBooks = async () => {
+              try {
+              const listBooks_ = [];
+              const data = await getBooks();
+              Object.entries(data).forEach(([state, books]) => {
+                  books.forEach((book: any) => {
+                      listBooks_.push(book);
+                  });
+              });
+              setlistBooks(listBooks_);
+              } catch (error) {
+              console.error('Error al obtener libros:', error);
+              }
+          };
 
-        const fetchBooks = async () => {
-            try {
-            const listBooks_ = [];
-            const data = await getBooks();
-            Object.entries(data).forEach(([state, books]) => {
-                books.forEach((book: any) => {
-                    listBooks_.push(book);
-                });
-            });
-            setlistBooks(listBooks_);
-            } catch (error) {
-            console.error('Error al obtener libros:', error);
-            }
-        };
-
-        fetchBooks();
-    }, []);
+          fetchBooks();
+      }, [])
+    );
 
   return (
     <ScrollView>
