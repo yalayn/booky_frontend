@@ -4,14 +4,15 @@ import { CardStyles, Colors } from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
 import { Card, CardContent } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { updateStateBook, registerReviewBook } from '../api/bookService';
+import { updateStateBook, registerReviewBook, deleteBook } from '../api/bookService';
 import Toast from 'react-native-toast-message';
 import ReviewModal from '../components/ReviewModal';
+import { useNavigation } from '@react-navigation/native';
 
 const TextDescriptionShort = ({text}) => {
   return (
     text ? (
-      <Text style={styles.bookMain}>{text}</Text>
+      <Text style={styles.bookDescription}>{text}</Text>
     ) : null
   )
 }
@@ -45,7 +46,6 @@ const LabelState = ({ bookState, onStateChange }) => {
   };
 
   const stateStyle      = STATE_BG_COLOR[bookState] || styles.bgReadLabel;
-  const stateLabelStyle = [styles.stateLabelContainer, stateStyle];
   const stateName       = STATES_NAME[bookState] || 'Estado desconocido';
 
   const handleStateChange = (newState) => {
@@ -57,8 +57,8 @@ const LabelState = ({ bookState, onStateChange }) => {
     <>
       {/* Label */}
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <View style={stateLabelStyle}>
-          <Text style={styles.stateLabel}>
+        <View style={[styles.bottonStateLabelContainer, stateStyle]}>
+          <Text style={styles.bottoonStateLabel}>
             {stateName} <Icon name="caret-down" size={14} color="#fff" />
           </Text>
         </View>
@@ -98,6 +98,54 @@ const LabelState = ({ bookState, onStateChange }) => {
   );
 };
 
+const BottonDeleteUserBook = ({onDeleteBook}) => {
+
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+
+  return (
+    <View>
+      <TouchableOpacity onPress={() => setConfirmDeleteVisible(true)}>
+        <View style={styles.deleteButton}>
+          <Text style={styles.deleteButtonText}><Icon name="trash" size={12} color="#fff"/> Quitar libro</Text>
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+      animationType="slide"
+      transparent={true}
+      visible={confirmDeleteVisible}
+      onRequestClose={() => setConfirmDeleteVisible(false)}
+      >
+      <View style={StylesModal.modalOverlay}>
+        <View style={StylesModal.modalContent}>
+          <Text style={StylesModal.modalTitle}>Confirmar accion.</Text>
+          <Text style={StylesModal.modalMessage}>¿Estás seguro de que deseas eliminar este libro?</Text>
+          <Text style={StylesModal.modalMessage}>Esta acción no se puede deshacer.</Text>
+          <View style={StylesModal.modalButtonContainer}>
+            <TouchableOpacity
+              style={[StylesModal.modalButton, StylesModal.modalCancelButton]}
+              onPress={() => setConfirmDeleteVisible(false)}
+            >
+              <Text style={StylesModal.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[StylesModal.modalButton, StylesModal.modalConfirmButton]}
+              onPress={() => {
+                setConfirmDeleteVisible(false);
+                onDeleteBook();
+              }}
+            >
+              <Text style={StylesModal.modalButtonText}>Quitar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+      </Modal>
+    </View>
+  )
+}
+
+
 const BookDetail = ({ route }) => {
   const { book } = route.params;
 
@@ -105,6 +153,8 @@ const BookDetail = ({ route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [rating, setRating] = useState(book.rating || 1);
   const [review, setReview] = useState(book.review || '');
+
+  const navigation = useNavigation();
 
   const handleStateChange = (newState) => {
     updateStateBook({ book_id: book.book_id, new_state: newState })
@@ -125,6 +175,27 @@ const BookDetail = ({ route }) => {
         console.error('Error al actualizar el estado del libro:', error);
       });
   };
+
+  const handleDeleteBook = () => {
+    console.log('Eliminando libro con ID:', book.book_id);
+    deleteBook({ book_id: book.book_id })
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Libro eliminado',
+          text2: 'El libro se eliminó correctamente.',
+        });
+        navigation.navigate('Library'); // Redirige a LibraryScreen
+      })
+      .catch((error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'No se pudo eliminar el libro.',
+        });
+        console.error('Error al eliminar el libro:', error);
+      });
+  }
 
   const handleReviewSubmit = (newRating, newReview) => {
     registerReviewBook({ book_id: book.book_id, rating: newRating, review_text: newReview })
@@ -147,15 +218,6 @@ const BookDetail = ({ route }) => {
       });
   };
 
-  const CardHome = ({ children, style }) => {
-      return <View style={[CardHomeStyles.card, style]}>{children}</View>;
-  };
-    
-    
-  const CardHomeContent = ({ children }) => {
-      return <View style={CardHomeStyles.cardContent}>{children}</View>;
-  };
-
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -164,32 +226,27 @@ const BookDetail = ({ route }) => {
         <LabelState bookState={bookState} onStateChange={handleStateChange}></LabelState>
 
         {/* Card principal */}
-        <CardHome style={CardHomeStyles.cardSpacing}>
-          <CardHomeContent>
-            {/* Book Cover */}
-            <View style={stylesBookCard.bookCardContainer}>
-              <View style={stylesBookCard.bookCoverContainer}>
-                <Image
-                  source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
-                  style={stylesBookCard.bookCover}
-                />
-              </View>
-    
-              {/* Book Details */}
-              <View style={stylesBookCard.bookDetailsContainer}>
-                  <Text style={stylesBookCard.bookTitle}>{book.title}</Text>
-                  <Text style={stylesBookCard.bookSubtitle}>{book.author}</Text>
-                  <LabelGenre listGenre={book.genre}></LabelGenre>
-                  <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
-              </View>
+        <View style={styles.bookSetionMain}>
+          <View style={styles.bookSetionMainContainer}>
+            <View style={styles.bookCoverContainer}>
+              <Image
+                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
+                style={styles.bookCover}
+              />
             </View>
-          </CardHomeContent>
-        </CardHome>
+            <View style={styles.bookDetailsContainer}>
+                <Text style={styles.bookTitle}>{book.title}</Text>
+                <Text style={styles.bookSubtitle}>{book.author}</Text>
+                <LabelGenre listGenre={book.genre}></LabelGenre>
+                <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
+            </View>
+          </View>
+        </View>
 
         {/* Card reseña */}
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Card style={CardStyles.cardSpacing}>
-            <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.darker} /> </Text>
+            <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.white} /> </Text>
             <CardContent>
               <Text style={styles.bookReview}>Mi reseña:</Text>
               <Text style={[styles.bookReview, styles.italics]}>
@@ -230,149 +287,94 @@ const BookDetail = ({ route }) => {
             ) : null}
           </CardContent>
         </Card>
+        
+        {/* Botón para eliminar el libro */}
+        <BottonDeleteUserBook onDeleteBook={handleDeleteBook}/>
+
       </View>
+
+
     </ScrollView>
   );
 };
-
-const stylesBookCard = StyleSheet.create({
-  bookCardContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bookCoverContainer: {
-    marginRight: 16,
-  },
-  bookCover: {
-    width: 100,
-    height: 150,
-    borderTopLeftRadius:12,
-    borderBottomLeftRadius:12,
-    borderColor: '#ccc',
-    shadowColor: '#000',
-    backgroundColor: '#e0e0e0',
-  },
-  bookDetailsContainer: {
-    flex: 1,
-  },
-  bookTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  bookSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 1,
-  },
-});
-
-const CardHomeStyles = StyleSheet.create({
-  container: {
-    paddingBlock:0,
-  },
-  card: {
-    // backgroundColor: "white",
-    borderBlockColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingEnd:16,
-    borderColor: "#ccc",
-    shadowColor: "transparent",
-  },
-  cardSpacing: {
-    marginBottom: 20,
-  },
-  cardContent: {
-    flexDirection: "column",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  subtitle: {
-    color: "#666",
-    marginBottom: 8,
-  },
-  item: {
-    color: "#444",
-    marginVertical: 4,
-  },
-  progressContainer: {
-    height: 8,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    overflow: "hidden",
-    marginVertical: 8,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: "#403E3B",
-  },
-  logButton: {
-    backgroundColor: "#403E3B",
-    borderWidth: 1,
-    borderColor: "#403E3B",
-    padding: 10,
-    borderRadius: 28,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logButtonText: {
-    color: "white",
-    marginLeft: 8,
-    fontWeight: "bold",
-  },
-});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: Colors.container,
+    backgroundColor: Colors.darker,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    color: Colors.white,
   },
-  bookMain: {
-    fontSize: 13,
-    marginBottom: 8,
+  bookSetionMain: {
+    marginBottom: 16,
+    backgroundColor: Colors.darker,
+    borderRadius: 12,
+    padding: 16,
+  },
+  bookSetionMainContainer: {
+    alignItems: 'center',
+  },
+  bookDetailsContainer: {
+    flex: 1,
+    textAlign: 'center',
   },
   bookDetail: {
     fontSize: 14,
     marginBottom: 8,
+    color: Colors.white,
   },
   bookReview: {
     fontSize: 16,
     marginBottom: 8,
     fontWeight: 'bold',
+    color: Colors.white,
   },
   subtitles: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: Colors.white,
   },
   italics: {
     fontSize: 16,
     marginBottom: 8,
     fontStyle: 'italic',
+    color: Colors.white,
+  },
+  bottonStateLabelContainer: {
+    marginVertical: 8,
+    alignSelf: 'center',
+    backgroundColor: Colors.secondary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  bottoonStateLabel: {
+    color: Colors.lighter,
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   stateLabelContainer: {
     marginVertical: 8,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     backgroundColor: Colors.secondary,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
+    alignItems: 'center',
   },
   stateLabel: {
-    color: '#fff',
+    color: Colors.lighter,
     fontSize: 12,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   descriptionLong: {
     marginTop: 8,
@@ -399,7 +401,52 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    }
+    },
+    bookCoverContainer: {
+      marginRight: 16,
+    },
+    bookCover: {
+      width: 240,
+      height: 360,
+      borderRadius: 12,
+      borderColor: '#ccc',
+      shadowColor: '#000',
+      backgroundColor: '#e0e0e0',
+      marginBottom: 20,
+    },
+    bookTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 4,
+      color: Colors.white,
+      textAlign: 'center',
+    },
+    bookSubtitle: {
+      fontSize: 14,
+      marginBottom: 1,
+      color: Colors.white,
+      textAlign: 'center',
+    },
+    bookDescription: {
+      fontSize: 13,
+      marginBottom: 8,
+      color: Colors.white,
+      textAlign: 'center',
+    },
+    deleteButton: {
+      marginVertical: 8,
+      alignSelf: 'center',
+      backgroundColor: Colors.red,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    deleteButtonText: {
+      color: Colors.lighter,
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
 });
 
 export default BookDetail;

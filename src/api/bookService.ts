@@ -11,12 +11,17 @@ export const getBooks = async () => {
 //   return res.data;
 // };
 
-export const updateStateBook = async (updates: any) => {
-  const response = await httpClient.put('/userbook/update_state', updates);
+export const updateStateBook = async (jsonParams: any) => {
+  const response = await httpClient.put('/userbook/update_state', jsonParams);
   return response.data;
 };
 
-export const registerReviewBook = async (updates: any) => {
-  const response = await httpClient.post('/userbook/register_review', updates);
+export const registerReviewBook = async (jsonParams: any) => {
+  const response = await httpClient.post('/userbook/register_review', jsonParams);
   return response.data;
 };
+
+export const deleteBook = async (jsonParams: any) => {
+  const response = await httpClient.post('/userbook/remove',jsonParams);
+  return response.data;
+}
