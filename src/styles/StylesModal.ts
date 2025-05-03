@@ -16,10 +16,17 @@ const StylesModal = StyleSheet.create({
       alignItems: 'center',
     },
     modalTitle: {
-      paddingTop: 26,
+      marginTop: 40,
       fontSize: 18,
       fontWeight: 'bold',
       marginBottom: 16,
+      color: '#fff',
+      alignContent: 'center',
+      textAlign: 'center',
+    },
+    modalSubtitle: {
+      paddingVertical: 6,
+      fontSize: 16,
       color: '#fff',
     },
     modalLabelText: {
