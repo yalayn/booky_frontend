@@ -120,8 +120,10 @@ const SearchScreen = () => {
   };
 
   const handleAddToLibrary = () => {
-    Alert.alert('Libro agregado', `${selectedBook.title} ha sido agregado a tu biblioteca.`);
-    setModalVisible(false); // Cierra el modal después de agregar
+    Alert.alert('Listo', `${selectedBook.title}.\n Ha sido agregado a tu biblioteca.`);
+    setModalVisible(false);
+
+    
   };
 
   const renderBookItem = ({ item }) => (
