@@ -22,11 +22,13 @@ const LabelGenre = ({listGenre}) => {
         return null; // No genres to display
     }
     return (
-        <View style={styles.stateLabelContainer}>
-            {listGenre.map((genre, index) => (
-                <Text key={index} style={styles.stateLabel}>{genre}</Text>
-            ))}
+      <View>
+      {listGenre.map((genre, index) => (
+        <View key={index} style={styles.stateLabelContainer}>
+            <Text key={index} style={styles.stateLabel}>{genre}</Text>
         </View>
+      ))}
+      </View>
     );
 };
 
@@ -362,7 +364,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   stateLabelContainer: {
-    marginVertical: 8,
+    marginVertical: 2,
     alignSelf: 'center',
     backgroundColor: Colors.secondary,
     paddingHorizontal: 12,
@@ -375,6 +377,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 2,
   },
   descriptionLong: {
     marginTop: 8,
@@ -401,11 +404,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    },
-    bookCoverContainer: {
-      marginRight: 16,
-    },
-    bookCover: {
+  },
+  bookCoverContainer: {
+      alignContent: 'center',
+      justifyContent: 'center',
+      alignItems: 'center',
+  },
+  bookCover: {
       width: 240,
       height: 360,
       borderRadius: 12,
@@ -413,27 +418,27 @@ const styles = StyleSheet.create({
       shadowColor: '#000',
       backgroundColor: '#e0e0e0',
       marginBottom: 20,
-    },
-    bookTitle: {
+  },
+  bookTitle: {
       fontSize: 18,
       fontWeight: 'bold',
       marginBottom: 4,
       color: Colors.white,
       textAlign: 'center',
-    },
-    bookSubtitle: {
+  },
+  bookSubtitle: {
       fontSize: 14,
       marginBottom: 1,
       color: Colors.white,
       textAlign: 'center',
-    },
-    bookDescription: {
+  },
+  bookDescription: {
       fontSize: 13,
       marginBottom: 8,
       color: Colors.white,
       textAlign: 'center',
-    },
-    deleteButton: {
+  },
+  deleteButton: {
       marginVertical: 8,
       alignSelf: 'center',
       backgroundColor: Colors.red,
@@ -441,12 +446,12 @@ const styles = StyleSheet.create({
       paddingVertical: 8,
       borderRadius: 8,
       alignItems: 'center',
-    },
-    deleteButtonText: {
+  },
+  deleteButtonText: {
       color: Colors.lighter,
       fontSize: 12,
       fontWeight: 'bold',
-    },
+  },
 });
 
 export default BookDetail;
