@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, A
 import StylesModal from '../styles/StylesModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Colors } from '../styles/AppStyles';
-import { searchBook } from '../api/bookService';
+import { searchBook, addBook } from '../api/bookService';
 
 const SearchScreen = () => {
   const [searchText, setSearchText] = useState('');
@@ -35,8 +35,14 @@ const SearchScreen = () => {
   };
 
   const handleAddToLibrary = () => {
-    console.log('Libro agregado a la biblioteca:', selectedBook);
-    Alert.alert('Listo', `${selectedBook.title}.\n Ha sido agregado a tu biblioteca.`);
+    addBook(selectedBook)
+    .then(() => {
+        Alert.alert('Listo. \n Libro agregado a tu biblioteca.');
+      })
+      .catch((error) => {
+        console.error('Error al agregar el libro a la biblioteca:', error);
+        Alert.alert('Error', 'No se pudo agregar el libro a la biblioteca. Inténtalo de nuevo más tarde.');
+      });
     setModalVisible(false);
   };
 

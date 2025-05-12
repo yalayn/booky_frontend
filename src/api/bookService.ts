@@ -6,10 +6,10 @@ export const getBooks = async () => {
   return response.data;
 };
 
-// export const addBook = async (book: any) => {
-//   const res = await axios.post(`${API_BASE}/books`, book);
-//   return res.data;
-// };
+export const addBook = async (jsonParams: any) => {
+  const response = await httpClient.post('userbook/add', jsonParams);
+  return response.data;
+};
 
 export const updateStateBook = async (jsonParams: any) => {
   const response = await httpClient.put('/userbook/update_state', jsonParams);
