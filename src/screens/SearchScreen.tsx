@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, A
 import StylesModal from '../styles/StylesModal';
 import  Icon  from 'react-native-vector-icons/FontAwesome';
 import { Colors } from '../styles/AppStyles';
-import { Italic } from 'lucide-react-native';
 
 const SearchScreen = () => {
   const [searchText, setSearchText] = useState('');
@@ -13,96 +12,236 @@ const SearchScreen = () => {
 
   const books = [
     {
-      "id": "OL2630071W",
-      "title": "Los 7 Habitos de la Gente Altamente Efectiva",
-      "author": "Stephen R. Covey",
-      "publisher": "Desconocida",
-      "year": 1992,
-      "isbn": "000-698431085",
-      "cover_url": "https://covers.openlibrary.org/b/id/1051915-M.jpg"
+        "key": "OL2630071W",
+        "title": "Los 7 Habitos de la Gente Altamente Efectiva",
+        "genre": "Desconocido",
+        "publication_year": 1992,
+        "isbn": "000-705705978",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 1051915,
+        "cover_url": "https://covers.openlibrary.org/b/id/1051915.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "XN1RDAUU0Q"
+        },
+        "author": {
+            "name": "Stephen R. Covey",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL383159A"
+        }
     },
     {
-      "id": "OL37767407W",
-      "title": "Hábitos atómicos / Atomic Habits",
-      "author": "James Clear",
-      "publisher": "Desconocida",
-      "year": 2016,
-      "isbn": "000-530806413",
-      "cover_url": "https://covers.openlibrary.org/b/id/14591837-M.jpg"
+        "key": "OL37767407W",
+        "title": "Hábitos atómicos / Atomic Habits",
+        "genre": "Desconocido",
+        "publication_year": 2016,
+        "isbn": "000-499097006",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 14591837,
+        "cover_url": "https://covers.openlibrary.org/b/id/14591837.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "BMZHLFDG7B"
+        },
+        "author": {
+            "name": "James Clear",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL7422948A"
+        }
     },
     {
-      "id": "OL33100278W",
-      "title": "O Poder do Hábito",
-      "author": "Desconocido",
-      "publisher": "Desconocida",
-      "year": "Desconocido",
-      "isbn": "000-644712872",
-      "cover_url": "https://covers.openlibrary.org/b/id/13117959-M.jpg"
+        "key": "OL33100278W",
+        "title": "O Poder do Hábito",
+        "genre": "Desconocido",
+        "publication_year": "Desconocido",
+        "isbn": "000-565966932",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 13117959,
+        "cover_url": "https://covers.openlibrary.org/b/id/13117959.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "GXESQLP8G4"
+        },
+        "author": {
+            "name": "Desconocido",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "O72BB9L1SU"
+        }
     },
     {
-      "id": "OL27034409W",
-      "title": "Tiende tu cama y otros pequeños hábitos que cambia",
-      "author": "McRaven",
-      "publisher": "Desconocida",
-      "year": 2017,
-      "isbn": "000-386757404",
-      "cover_url": "https://covers.openlibrary.org/b/id/12542206-M.jpg"
+        "key": "OL27034409W",
+        "title": "Tiende tu cama y otros pequeños hábitos que cambia",
+        "genre": "Desconocido",
+        "publication_year": 2017,
+        "isbn": "000-494810303",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 12542206,
+        "cover_url": "https://covers.openlibrary.org/b/id/12542206.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "PXF1VXSLFF"
+        },
+        "author": {
+            "name": "McRaven",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL10137296A"
+        }
     },
     {
-      "id": "OL22161074W",
-      "title": "Buenos Habitos, Malos Habitos",
-      "author": "Wendy Wood",
-      "publisher": "Desconocida",
-      "year": 2020,
-      "isbn": "000-788701064",
-      "cover_url": "https://covers.openlibrary.org/b/id/12021210-M.jpg"
+        "key": "OL22161074W",
+        "title": "Buenos Habitos, Malos Habitos",
+        "genre": "Desconocido",
+        "publication_year": 2020,
+        "isbn": "000-260693373",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 12021210,
+        "cover_url": "https://covers.openlibrary.org/b/id/12021210.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "RRZYZ5UQPY"
+        },
+        "author": {
+            "name": "Wendy Wood",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL7952399A"
+        }
     },
     {
-      "id": "OL34448170W",
-      "title": "Construyendo Hábitos Atomicos",
-      "author": "Oum motivación",
-      "publisher": "Desconocida",
-      "year": 2021,
-      "isbn": "000-876945411",
-      "cover_url": null
+        "key": "OL34448170W",
+        "title": "Construyendo Hábitos Atomicos",
+        "genre": "Desconocido",
+        "publication_year": 2021,
+        "isbn": "000-939632352",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": null,
+        "cover_url": null,
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "RGNYCP2W1U"
+        },
+        "author": {
+            "name": "Oum motivación",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL10030238A"
+        }
     },
     {
-      "id": "OL33261506W",
-      "title": "Os 7 Hábitos das Pessoas Altamente Eficazes",
-      "author": "Vários Autores",
-      "publisher": "Desconocida",
-      "year": 2014,
-      "isbn": "000-148596055",
-      "cover_url": "https://covers.openlibrary.org/b/id/13122863-M.jpg"
+        "key": "OL33261506W",
+        "title": "Os 7 Hábitos das Pessoas Altamente Eficazes",
+        "genre": "Desconocido",
+        "publication_year": 2014,
+        "isbn": "000-420300524",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 13122863,
+        "cover_url": "https://covers.openlibrary.org/b/id/13122863.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "4CL10XH8OT"
+        },
+        "author": {
+            "name": "Vários Autores",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL7167492A"
+        }
     },
     {
-      "id": "OL26579474W",
-      "title": "Hábitos para Ser Millonario",
-      "author": "Brian Tracy, Harvard Business Review Staff",
-      "publisher": "Desconocida",
-      "year": 2019,
-      "isbn": "000-917411228",
-      "cover_url": "https://covers.openlibrary.org/b/id/13850974-M.jpg"
+        "key": "OL26579474W",
+        "title": "Hábitos para Ser Millonario",
+        "genre": "Desconocido",
+        "publication_year": 2019,
+        "isbn": "000-755222642",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 13850974,
+        "cover_url": "https://covers.openlibrary.org/b/id/13850974.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "C2JCVU0IC1"
+        },
+        "author": {
+            "name": "Brian Tracy",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL327356A"
+        }
     },
     {
-      "id": "OL26392627W",
-      "title": "Los hábitos de un cerebro feliz",
-      "author": "LORETTA GRAZIANO BREUNING, JOANA DELGADO SÁNCHEZ",
-      "publisher": "Desconocida",
-      "year": 2016,
-      "isbn": "000-926484004",
-      "cover_url": "https://covers.openlibrary.org/b/id/12340019-M.jpg"
+        "key": "OL26392627W",
+        "title": "Los hábitos de un cerebro feliz",
+        "genre": "Desconocido",
+        "publication_year": 2016,
+        "isbn": "000-422480937",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 12340019,
+        "cover_url": "https://covers.openlibrary.org/b/id/12340019.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "0NA4A129UG"
+        },
+        "author": {
+            "name": "LORETTA GRAZIANO BREUNING",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL9948627A"
+        }
     },
     {
-      "id": "OL26417449W",
-      "title": "7 Habitos das Pessoas Altamente Eficazes",
-      "author": "Stephen R Covery",
-      "publisher": "Desconocida",
-      "year": 2009,
-      "isbn": "000-746150579",
-      "cover_url": "https://covers.openlibrary.org/b/id/12372707-M.jpg"
+        "key": "OL26417449W",
+        "title": "7 Habitos das Pessoas Altamente Eficazes",
+        "genre": "Desconocido",
+        "publication_year": 2009,
+        "isbn": "000-548829065",
+        "descriptions_short": "",
+        "descriptions_long": "",
+        "cover_i": 12372707,
+        "cover_url": "https://covers.openlibrary.org/b/id/12372707.jpg",
+        "editorial": {
+            "name": "Desconocida",
+            "country": "Desconocido",
+            "founding_date": "0000-00-00",
+            "key": "65Y3CR41PH"
+        },
+        "author": {
+            "name": "Stephen R Covery",
+            "country": "Desconocido",
+            "birthday": "0000-00-00",
+            "key": "OL9956795A"
+        }
     }
-  ]
+  ];
 
   const handleSearch = (text) => {
     setSearchText(text);
@@ -112,9 +251,9 @@ const SearchScreen = () => {
       return;
     }
 
-    const results = books.filter((book) =>
+  const results = books.filter((book) =>
       book.title.toLowerCase().includes(text.toLowerCase()) ||
-      book.author.toLowerCase().includes(text.toLowerCase())
+      book.author.name.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredBooks(results);
   };
@@ -123,7 +262,7 @@ const SearchScreen = () => {
     Alert.alert('Listo', `${selectedBook.title}.\n Ha sido agregado a tu biblioteca.`);
     setModalVisible(false);
 
-    
+
   };
 
   const renderBookItem = ({ item }) => (
@@ -135,7 +274,7 @@ const SearchScreen = () => {
       }}
     >
       <Text style={styles.bookTitle}>{item.title}</Text>
-      <Text style={styles.bookAuthor}>{item.author}</Text>
+      <Text style={styles.bookAuthor}>{item.author.name}</Text>
     </TouchableOpacity>
   );
 
@@ -151,7 +290,7 @@ const SearchScreen = () => {
       />
       <FlatList
         data={filteredBooks}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.key}
         renderItem={renderBookItem}
         ListEmptyComponent={
           searchText.trim() !== '' && (
@@ -181,7 +320,7 @@ const SearchScreen = () => {
                   />
                   <Text style={[styles.modalSubtitle, {fontStyle:'italic',fontSize:14,marginBottom: 10}]}>ISBN: {selectedBook.isbn}</Text>
                   <Text style={styles.modalTitle}>{selectedBook.title}</Text>
-                  <Text style={styles.modalSubtitle}>{selectedBook.author}</Text>
+                  <Text style={styles.modalSubtitle}>{selectedBook.author.name}</Text>
                 </View>
                 <TouchableOpacity style={StylesModal.modalOption} onPress={handleAddToLibrary} >
                   <Text style={StylesModal.modalOptionText}>Agregar a biblioteca</Text>
