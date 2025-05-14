@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Alert, Image } from 'react-native';
 import StylesModal from '../styles/StylesModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,9 +10,11 @@ const SearchScreen = () => {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchBooks = async (query: string) => {
     try {
+      console.log('Buscando libros con la consulta:', query);
       const books = await searchBook(query);
       const formattedBooks = books.filter((book:any) =>
         book.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -25,13 +27,16 @@ const SearchScreen = () => {
     }
   };
 
-  const handleSearch = (text: any) => {
+  const handleSearch = (text: string) => {
     setSearchText(text);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (text.trim() === '') {
       setFilteredBooks([]);
       return;
     }
-    fetchBooks(text);
+    debounceRef.current = setTimeout(() => {
+      fetchBooks(text);
+    }, 300);
   };
 
   const handleAddToLibrary = () => {
