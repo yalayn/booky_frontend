@@ -26,7 +26,9 @@ export const deleteBook = async (jsonParams: any) => {
   return response.data;
 }
 
-export const searchBook = async (query: any) => {
-  const response = await httpClient.get(`/search/book?title=${query}`);
+export const searchBook = async (query: string, cancelToken?: any) => {
+  const response = await httpClient.get(`/search/book?title=${query}`, {
+    cancelToken,
+  });
   return response.data;
-}
+};
