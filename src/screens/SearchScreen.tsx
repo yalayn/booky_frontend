@@ -4,26 +4,39 @@ import StylesModal from '../styles/StylesModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Colors } from '../styles/AppStyles';
 import { searchBook, addBook } from '../api/bookService';
+import axios from 'axios';
+import BottomMenu from '../components/BottomMenu';
+import { useNavigation } from '@react-navigation/native';
 
 const SearchScreen = () => {
+  const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const cancelTokenRef = useRef<any>(null);
 
   const fetchBooks = async (query: string) => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel('Nueva búsqueda iniciada');
+    }
+    cancelTokenRef.current = axios.CancelToken.source();
+
     try {
-      console.log('Buscando libros con la consulta:', query);
-      const books = await searchBook(query);
-      const formattedBooks = books.filter((book:any) =>
+      const books = await searchBook(query, cancelTokenRef.current.token);
+      const formattedBooks = books.filter((book: any) =>
         book.title.toLowerCase().includes(query.toLowerCase()) ||
         book.author.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredBooks(formattedBooks);
-    } catch (error) {
-      console.error('Error al buscar libros:', error);
-      Alert.alert('Error', 'No se pudo realizar la búsqueda. Inténtalo de nuevo más tarde.');
+    } catch (error: any) {
+      if (axios.isCancel(error)) {
+        // La petición fue cancelada, no hacer nada
+      } else {
+        console.error('Error al buscar libros:', error);
+        Alert.alert('Error', 'No se pudo realizar la búsqueda. Inténtalo de nuevo más tarde.');
+      }
     }
   };
 
@@ -63,6 +76,7 @@ const SearchScreen = () => {
       <Text style={styles.bookAuthor}>{item.author.name}</Text>
     </TouchableOpacity>
   );
+
 
   return (
     <View style={styles.container}>
@@ -125,6 +139,7 @@ const SearchScreen = () => {
           </View>
         </View>
       </Modal>
+      <BottomMenu navigation={navigation} currentView={"search"}/>
     </View>
   );
 };

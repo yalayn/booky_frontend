@@ -1,15 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image } from "react-native";
-import { Timer } from "lucide-react-native";
-import { LineChart } from "react-native-chart-kit";
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { CardStyles, SectionListStyles} from "../styles/AppStyles";
 import { SectionList, SectionListContent } from "../components/SectionList";
 import { Card, CardContent } from "../components/Card";
-import Icon from "react-native-vector-icons/FontAwesome";
-
-const screenWidth = Dimensions.get("window").width;
+import BottomMenu from "../components/BottomMenu";
 
 // Progress Component
 const Progress = ({ value }) => {
@@ -19,47 +15,6 @@ const Progress = ({ value }) => {
     </View>
   );
 };
-
-const NavButtons = () => {
-    const navigation = useNavigation();
-    return (
-      <View style={styles.navigationButtons}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Library')}
-        >
-          <Text style={styles.navButtonText}>Biblioteca</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Search')}
-        >
-          <Text style={styles.navButtonText}>Agregar</Text>
-        </TouchableOpacity>
-      </View>
-    )
-}
-
-const BottomMenu = ({navigation}) => {
-  return (
-    <View style={StyleBottomMenu.bottomMenu}>
-        <TouchableOpacity
-          style={StyleBottomMenu.menuButton}
-          onPress={() => navigation.navigate("Library")}
-        >
-          <Icon name="book" size={24} color="#fff" />
-          <Text style={StyleBottomMenu.menuButtonText}>Biblioteca</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={StyleBottomMenu.menuButton}
-          onPress={() => navigation.navigate("Search")}
-        >
-          <Icon name="search" size={24} color="#fff" />
-          <Text style={StyleBottomMenu.menuButtonText}>Agregar</Text>
-        </TouchableOpacity>
-      </View>
-  )
-}
 
 const ProgressSummary = ({ readingTime,readingStats }) => {
   return (
@@ -195,7 +150,7 @@ const BookTrackerMain = () => {
       </ScrollView>
       
       {/* Navigation Buttons */}
-      <BottomMenu navigation={navigation}/>
+      <BottomMenu navigation={navigation} currentView={"home"}/>
     </View>
   );
 };
@@ -223,30 +178,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-});
-
-const StyleBottomMenu = StyleSheet.create({
-  bottomMenu: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "#403E3B",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingVertical: 12,
-  },
-  menuButton: {
-    alignItems: "center",
-  },
-  menuButtonText: {
-    color: "white",
-    fontSize: 12,
-    marginTop: 4,
-    marginBottom: 0,
-  }
 });
 
 const stylesBookCard = StyleSheet.create({
