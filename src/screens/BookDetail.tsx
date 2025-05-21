@@ -61,7 +61,7 @@ const LabelState = ({ bookState, onStateChange }) => {
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <View style={[styles.bottonStateLabelContainer, stateStyle]}>
           <Text style={styles.bottoonStateLabel}>
-            {stateName} <Icon name="caret-down" size={14} color="#fff" />
+            {stateName} <Icon name="caret-down" size={14} color={Colors.white} />
           </Text>
         </View>
       </TouchableOpacity>
@@ -76,7 +76,7 @@ const LabelState = ({ bookState, onStateChange }) => {
         <View style={StylesModal.modalOverlay}>
           <View style={StylesModal.modalContent}>
             <TouchableOpacity style={StylesModal.modalCloseButtonIcon} onPress={() => setModalVisible(false)} >
-              <Icon name="close" size={16} color="#fff" />
+              <Icon name="close" size={16} color={Colors.white} />
             </TouchableOpacity>
             <Text style={StylesModal.modalTitle}>Cambiar Estado</Text>
             {Object.entries(STATES_NAME).map(([key, label]) => {
@@ -108,7 +108,7 @@ const BottonDeleteUserBook = ({onDeleteBook}) => {
     <View>
       <TouchableOpacity onPress={() => setConfirmDeleteVisible(true)}>
         <View style={styles.deleteButton}>
-          <Text style={styles.deleteButtonText}><Icon name="trash" size={12} color="#fff"/> Quitar libro</Text>
+          <Text style={styles.deleteButtonText}><Icon name="trash" size={12} color={Colors.white}/> Quitar libro</Text>
         </View>
       </TouchableOpacity>
 
@@ -223,77 +223,81 @@ const BookDetail = ({ route }) => {
   return (
     <ScrollView>
       <View style={styles.container}>
+      {/* Botón para regresar */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Icon name="close" size={20} color={Colors.white} />
+      </TouchableOpacity>
 
-        {/* Label de estado */}
-        <LabelState bookState={bookState} onStateChange={handleStateChange}></LabelState>
+      {/* Label de estado */}
+      <LabelState bookState={bookState} onStateChange={handleStateChange} />
 
-        {/* Card principal */}
-        <View style={styles.bookSetionMain}>
-          <View style={styles.bookSetionMainContainer}>
-            <View style={styles.bookCoverContainer}>
-              <Image
-                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
-                style={styles.bookCover}
-              />
-            </View>
-            <View style={styles.bookDetailsContainer}>
-                <Text style={styles.bookTitle}>{book.title}</Text>
-                <Text style={styles.bookSubtitle}>{book.author}</Text>
-                <LabelGenre listGenre={book.genre}></LabelGenre>
-                <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
-            </View>
+      {/* Card principal */}
+      <View style={styles.bookSetionMain}>
+        <View style={styles.bookSetionMainContainer}>
+          <View style={styles.bookCoverContainer}>
+            <Image
+              source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
+              style={styles.bookCover}
+            />
+          </View>
+          <View style={styles.bookDetailsContainer}>
+              <Text style={styles.bookTitle}>{book.title}</Text>
+              <Text style={styles.bookSubtitle}>{book.author}</Text>
+              <LabelGenre listGenre={book.genre}></LabelGenre>
+              <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
           </View>
         </View>
+      </View>
 
-        {/* Card reseña */}
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Card style={CardStyles.cardSpacing}>
-            <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.white} /> </Text>
-            <CardContent>
-              <Text style={styles.bookReview}>Mi reseña:</Text>
-              <Text style={[styles.bookReview, styles.italics]}>
-                {Array.from({ length: rating }, (_, index) => (
-                  <Icon key={index} name="star" size={16} color={Colors.star} />
-                ))}
-              </Text>
-              <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
-            </CardContent>
-          </Card>
-        </TouchableOpacity>
-        <ReviewModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSubmit={handleReviewSubmit}
-          initialRating={rating}
-          initialReview={review}
-        />
-        
-        {/* Card detalles */}
+      {/* Card reseña */}
+      <TouchableOpacity onPress={() => setModalVisible(true)}>
         <Card style={CardStyles.cardSpacing}>
+          <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.white} /> </Text>
           <CardContent>
-            <Text style={styles.title}>Detalles</Text>
-            <Text style={styles.bookDetail}>
-              <Text style={{ fontWeight: 'bold' }}>Autor: </Text> {book.author}
+            <Text style={styles.bookReview}>Mi reseña:</Text>
+            <Text style={[styles.bookReview, styles.italics]}>
+              {Array.from({ length: rating }, (_, index) => (
+                <Icon key={index} name="star" size={16} color={Colors.star} />
+              ))}
             </Text>
-            <Text style={styles.bookDetail}>
-              <Text style={{ fontWeight: 'bold' }}>Editorial: </Text> {book.editorial}
-            </Text>
-            <Text style={styles.bookDetail}>
-              <Text style={{ fontWeight: 'bold' }}>Fecha de publicación: </Text> {book.publication_year}
-            </Text>
-            <Text style={[styles.bookDetail]}>
-              <Text style={{ fontWeight: 'bold' }}>ISBN: </Text>{book.isbn}
-            </Text>
-            {book.descriptions_long ? (
-            <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
-            ) : null}
+            <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
           </CardContent>
         </Card>
-        
-        {/* Botón para eliminar el libro */}
-        <BottonDeleteUserBook onDeleteBook={handleDeleteBook}/>
+      </TouchableOpacity>
+      <ReviewModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleReviewSubmit}
+        initialRating={rating}
+        initialReview={review}
+      />
+      
+      {/* Card detalles */}
+      <Card style={CardStyles.cardSpacing}>
+        <CardContent>
+          <Text style={styles.title}>Detalles</Text>
+          <Text style={styles.bookDetail}>
+            <Text style={{ fontWeight: 'bold' }}>Autor: </Text> {book.author}
+          </Text>
+          <Text style={styles.bookDetail}>
+            <Text style={{ fontWeight: 'bold' }}>Editorial: </Text> {book.editorial}
+          </Text>
+          <Text style={styles.bookDetail}>
+            <Text style={{ fontWeight: 'bold' }}>Fecha de publicación: </Text> {book.publication_year}
+          </Text>
+          <Text style={[styles.bookDetail]}>
+            <Text style={{ fontWeight: 'bold' }}>ISBN: </Text>{book.isbn}
+          </Text>
+          {book.descriptions_long ? (
+          <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
+          ) : null}
+        </CardContent>
+      </Card>
+      
+      {/* Botón para eliminar el libro */}
+      <BottonDeleteUserBook onDeleteBook={handleDeleteBook}/>
 
-      </View>
+    </View>
 
 
     </ScrollView>
@@ -305,6 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: Colors.darker,
+    paddingBottom: 80,
   },
   title: {
     fontSize: 24,
@@ -451,6 +456,25 @@ const styles = StyleSheet.create({
       color: Colors.lighter,
       fontSize: 12,
       fontWeight: 'bold',
+  },
+  backButton: {
+    flexDirection: 'row',
+    marginBottom: 4,
+    marginTop: 50,
+    marginEnd: 16,
+    // alignSelf: 'flex-end',
+
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
 

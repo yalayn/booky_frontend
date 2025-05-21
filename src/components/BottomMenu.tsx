@@ -1,42 +1,27 @@
 
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "../styles/AppStyles";
 
-const BottomMenu = ({navigation, currentView}) => {
-  
-  const listViews = {
-    "home":{
-      icon      : "home",
-      label     : "Inicio",
-      navigateTo: "Home"
-    },
-    "library":{
-      icon      : "book",
-      label     : "Biblioteca",
-      navigateTo: "Library"
-    }, 
-    "search":{
-      icon      : "search",
-      label     : "Agregar",
-      navigateTo: "Search"
-    }
-  };
-  return (
-    <View style={StyleBottomMenu.bottomMenu}>
-        {Object.entries(listViews).map(([key, { icon, label, navigateTo }]) => (
-          <TouchableOpacity
-            key={key}
-            style={[StyleBottomMenu.menuButton, currentView === key && { backgroundColor: Colors.primary}]}
-            onPress={() => navigation.navigate(navigateTo)}
-          >
-            <Text style={StyleBottomMenu.menuButtonText} > {label} </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-  )
-}
+const BottomMenu = ({ state, descriptors, navigation }) => (
+  <View style={StyleBottomMenu.bottomMenu}>
+    {state.routes.map((route, index) => {
+      const { options } = descriptors[route.key];
+      const label = options.tabBarLabel ?? options.title ?? route.name;
+      const isFocused = state.index === index;
+
+      return (
+        <TouchableOpacity
+          key={route.key}
+          style={[StyleBottomMenu.menuButton, isFocused && { backgroundColor: Colors.darker }]}
+          onPress={() => navigation.navigate(route.name)}
+        >
+          <Text style={StyleBottomMenu.menuButtonText}>{label}</Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+);
 
 const StyleBottomMenu = StyleSheet.create({
   bottomMenu: {
@@ -46,9 +31,16 @@ const StyleBottomMenu = StyleSheet.create({
     right: 56,
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: Colors.darker,
+    backgroundColor: Colors.primary,
     paddingVertical: 6,
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowRadius: 2,
+    shadowOpacity: 0.4,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
   },
   menuButton: {
     alignItems: "center",

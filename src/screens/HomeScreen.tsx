@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image } from "react-native";
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { CardStyles, SectionListStyles} from "../styles/AppStyles";
+import { Colors, CardStyles, SectionListStyles} from "../styles/AppStyles";
 import { SectionList, SectionListContent } from "../components/SectionList";
 import { Card, CardContent } from "../components/Card";
-import BottomMenu from "../components/BottomMenu";
 
 // Progress Component
 const Progress = ({ value }) => {
@@ -81,7 +80,7 @@ const BookCard = ({ index, book, onRegisterTime, navigation }) => {
               style={CardStyles.logButton}
               onPress={() => onRegisterTime(book)}
             >
-              <Text style={CardStyles.logButtonText}>Registrar 30 min</Text>
+              <Text style={CardStyles.logButtonText}>Iniciar lectura</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -133,33 +132,24 @@ const BookTrackerMain = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer}>
-        
-        {/* Header */}
+      <ScrollView>
         <View style={CardStyles.cardSpacing}>
           <Text style={CardStyles.title}>Home</Text>
           <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
         </View>
-
-        {/* Resumen de progreso */}
         <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
-
-        {/* Libros en lectura */}
         <SectionBookList title="En curso" bookList={booksReading} onRegisterTime={handleRegisterTime} navigation={navigation}/>
-      
       </ScrollView>
-      
-      {/* Navigation Buttons */}
-      <BottomMenu navigation={navigation} currentView={"home"}/>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingBlock: 70,
-    padding: 16,
     flex: 1,
+    padding: 16,
+    backgroundColor: Colors.lighter,
+    marginTop: 40,
   },
   navigationButtons: {
     flexDirection: 'row',

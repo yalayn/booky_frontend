@@ -7,7 +7,6 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { TouchableOpacity, Image } from 'react-native';
 import StylesModal from "../styles/StylesModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BottomMenu from '../components/BottomMenu';
 
 const SectionBookList = ({ title, bookList }) => {
     return (
@@ -190,12 +189,11 @@ const LibraryScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-          <Text style={styles.title}>Biblioteca</Text>
-          <Text style={styles.subtitle}>Aquí puedes ver tus libros.</Text>
-          <LabelStateFilter bookState={bookState} onStateChange={handleStateChange}></LabelStateFilter>
-          <SectionBookList title="" bookList={listBooks}/>
+        <Text style={styles.title}>Biblioteca</Text>
+        <Text style={styles.subtitle}>Aquí puedes ver tus libros.</Text>
+        <LabelStateFilter bookState={bookState} onStateChange={handleStateChange}></LabelStateFilter>
+        <SectionBookList title="" bookList={listBooks}/>
       </ScrollView>
-      <BottomMenu navigation={navigation} currentView={"library"}/>
     </View>
   );
 };
@@ -204,7 +202,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.lighter,
+    marginTop: 40,
   },
   title: {
     fontSize: 24,

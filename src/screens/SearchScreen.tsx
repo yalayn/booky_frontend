@@ -1,19 +1,64 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Modal, Alert, Image, ActivityIndicator } from 'react-native';
 import StylesModal from '../styles/StylesModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Colors } from '../styles/AppStyles';
 import { searchBook, addBook } from '../api/bookService';
 import axios from 'axios';
-import BottomMenu from '../components/BottomMenu';
 import { useNavigation } from '@react-navigation/native';
 
+
+const ModalShowDetails = ({modalVisible, selectedBook, handleAddToLibrary, setModalVisible}) => {
+  return (
+    <View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={StylesModal.modalOverlay}>
+          <View style={StylesModal.modalContent}>
+            {selectedBook && (
+              <>
+                <TouchableOpacity
+                  style={StylesModal.modalCloseButtonIcon}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Icon name="close" size={16} color="#fff" />
+                </TouchableOpacity>
+                <View style={[styles.bookDetailsContainer]}>
+                  <Image
+                    source={
+                      selectedBook.cover_url
+                        ? { uri: selectedBook.cover_url }
+                        : require('../assets/img/default_cover.jpg')
+                    }
+                    style={styles.bookCover}
+                  />
+                  <Text style={[styles.modalSubtitle, { fontStyle: 'italic', fontSize: 14, marginBottom: 10 }]}> ISBN: {selectedBook.isbn} </Text>
+                  <Text style={styles.modalTitle}>{selectedBook.title}</Text>
+                  <Text style={styles.modalSubtitle}>{selectedBook.author.name}</Text>
+                </View>
+                <TouchableOpacity style={StylesModal.modalOption} onPress={handleAddToLibrary}>
+                  <Text style={StylesModal.modalOptionText}>Agregar a biblioteca</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </View>
+  )
+}
+  
 const SearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [loading, setLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const cancelTokenRef = useRef<any>(null);
 
@@ -23,6 +68,7 @@ const SearchScreen = () => {
     }
     cancelTokenRef.current = axios.CancelToken.source();
 
+    setLoading(true); // Inicia el indicador de carga
     try {
       const books = await searchBook(query, cancelTokenRef.current.token);
       const formattedBooks = books.filter((book: any) =>
@@ -31,12 +77,12 @@ const SearchScreen = () => {
       );
       setFilteredBooks(formattedBooks);
     } catch (error: any) {
-      if (axios.isCancel(error)) {
-        // La petición fue cancelada, no hacer nada
-      } else {
+      if (!axios.isCancel(error)) {
         console.error('Error al buscar libros:', error);
         Alert.alert('Error', 'No se pudo realizar la búsqueda. Inténtalo de nuevo más tarde.');
       }
+    } finally {
+      setLoading(false); // Detiene el indicador de carga
     }
   };
 
@@ -82,64 +128,33 @@ const SearchScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Agregar</Text>
       <Text style={styles.subtitle}>Buscar libro</Text>
+
       <TextInput
         style={styles.searchInput}
         placeholder="Escribe el título del libro o el autor"
         value={searchText}
         onChangeText={handleSearch}
       />
-      <FlatList
-        data={filteredBooks}
-        keyExtractor={(item) => item.key}
-        renderItem={renderBookItem}
-        ListEmptyComponent={
-          searchText.trim() !== '' && (
-            <Text style={styles.noResultsText}>No se encontraron resultados</Text>
-          )
-        }
-      />
 
-      {/* Modal para mostrar detalles del libro */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={StylesModal.modalOverlay}>
-          <View style={StylesModal.modalContent}>
-            {selectedBook && (
-              <>
-                <TouchableOpacity
-                  style={StylesModal.modalCloseButtonIcon}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Icon name="close" size={16} color="#fff" />
-                </TouchableOpacity>
-                <View style={[styles.bookDetailsContainer]}>
-                  <Image
-                    source={
-                      selectedBook.cover_url
-                        ? { uri: selectedBook.cover_url }
-                        : require('../assets/img/default_cover.jpg')
-                    }
-                    style={styles.bookCover}
-                  />
-                  <Text style={[styles.modalSubtitle, { fontStyle: 'italic', fontSize: 14, marginBottom: 10 }]}>
-                    ISBN: {selectedBook.isbn}
-                  </Text>
-                  <Text style={styles.modalTitle}>{selectedBook.title}</Text>
-                  <Text style={styles.modalSubtitle}>{selectedBook.author.name}</Text>
-                </View>
-                <TouchableOpacity style={StylesModal.modalOption} onPress={handleAddToLibrary}>
-                  <Text style={StylesModal.modalOptionText}>Agregar a biblioteca</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
-      <BottomMenu navigation={navigation} currentView={"search"}/>
+      {loading ? (
+        <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 20 }} />
+      ) : (
+        <FlatList
+          data={filteredBooks}
+          keyExtractor={(item) => item.key}
+          renderItem={renderBookItem}
+          ListEmptyComponent={
+            searchText.trim() !== '' && (
+              <Text style={styles.noResultsText}>No se encontraron resultados</Text>
+            )
+          }
+        />
+      )}
+
+      <ModalShowDetails modalVisible={modalVisible}
+        selectedBook={selectedBook}
+        handleAddToLibrary={handleAddToLibrary}
+        setModalVisible={setModalVisible} />
     </View>
   );
 };
@@ -149,6 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: Colors.lighter,
+    marginTop: 40,
   },
   title: {
     fontSize: 24,
