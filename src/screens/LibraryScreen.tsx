@@ -131,7 +131,7 @@ const LabelStateFilter = ({ bookState, onStateChange }) => {
         <View style={StylesModal.modalOverlay}>
           <View style={StylesModal.modalContent}>
             <TouchableOpacity style={StylesModal.modalCloseButtonIcon} onPress={() => setModalVisible(false)} >
-              <Icon name="close" size={16} color="#fff" />
+              <Icon name="close" style={StylesModal.modalCloseButtonIconText}/>
             </TouchableOpacity>
             <Text style={StylesModal.modalTitle}>Cambiar Estado</Text>
             {Object.entries(STATES_NAME).map(([key, label]) => {

@@ -73,6 +73,12 @@ const StylesModal = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       },
+    modalCloseButtonIconText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+      textAlign: 'center'
+    },
     modalTexarea: {
         width: '100%',
         height: 100,
@@ -102,6 +108,7 @@ const StylesModal = StyleSheet.create({
       borderRadius: 8,
       alignItems: 'center',
       marginHorizontal: 4,
+      backgroundColor: Colors.primary,
     },
     modalCancelButton: {
       backgroundColor: Colors.primary,
@@ -112,6 +119,13 @@ const StylesModal = StyleSheet.create({
     modalButtonText: {
       color: '#fff',
       fontWeight: 'bold',
+    },
+    modalTitleXL: {
+    fontSize: 48,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
+    color: Colors.white,
     },
   });
 
