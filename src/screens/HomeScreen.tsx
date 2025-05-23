@@ -26,17 +26,31 @@ const Progress = ({ value }) => {
  * @param param0
  * @returns
  */
-const ProgressSummary = ({ readingTime,readingStats }) => {
-  
+const ProgressSummary = ({readingTime,readingStats}) => {
+  const totalReadingTime    = readingStats.reduce((acc, stat) => acc + stat.hours, 0);
+  const progressValue       = (readingTime / totalReadingTime) * 100;
+  const redingTimeFormatted = formatTime(readingTime);
   return (
       <Card style={CardStyles.cardSpacing}>
       <CardContent>
         <Text style={CardStyles.title}>Progreso de lectura</Text>
-        <Text style={CardStyles.subtitle}>Horas leídas esta semana: {readingTime}h</Text>
-        <Progress value={(readingTime / 10) * 100} />
+        <Text style={CardStyles.subtitle}>Horas leídas esta semana: {redingTimeFormatted}</Text>
+        <Progress value={progressValue} />
       </CardContent>
     </Card>
   );
+}
+
+/**
+ * Formatea el tiempo de lectura en horas, minutos y segundos
+ * @param readingTime 
+ * @returns 
+ */
+const formatTime = (readingTime: number) => {
+  const hours   = Math.floor(readingTime).toString().padStart(2, "0");
+  const minutes = Math.floor((readingTime % 1) * 60).toString().padStart(2, "0");
+  const seconds = Math.round((((readingTime % 1) * 60) % 1) * 60).toString().padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 /**
@@ -211,11 +225,10 @@ const HomeScreenMain = () => {
   const handleRegisterTime = (book:any) => {
     setSelectedBook(book);
     setTimerModalVisible(true);
-    // console.log(`Tiempo registrado para el libro: ${book.title}`);
-    // setReadingTime((prevTime) => prevTime + 0.5); // Add 30 minutes
   };
 
   const handleTimerFinish = (seconds:any) => {
+    console.log("handleTimerFinish", seconds);
     const hours = seconds / 3600;
     setReadingTime((prev) => prev + hours);
   };
