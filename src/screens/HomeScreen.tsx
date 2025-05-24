@@ -7,8 +7,7 @@ import StylesModal from "../styles/StylesModal";
 import { SectionList, SectionListContent } from "../components/SectionList";
 import { Card, CardContent } from "../components/Card";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { clearAccessToken } from "../api/httpClient";
+import Header from "../components/Header";
 
 /**
  * Componente para mostrar el progreso de lectura
@@ -229,7 +228,6 @@ const HomeScreenMain = ({onLogout}) => {
   };
 
   const handleTimerFinish = (seconds:any) => {
-    console.log("handleTimerFinish", seconds);
     const hours = seconds / 3600;
     setReadingTime((prev) => prev + hours);
   };
@@ -260,14 +258,7 @@ const HomeScreenMain = ({onLogout}) => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <View style={CardStyles.cardSpacing}>
-          <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-            <Text style={styles.logoutButtonText}>Salir</Text>
-          </TouchableOpacity>
-          <Text style={CardStyles.title}>Home</Text>
-          <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
-        </View>
-
+        <Header title="Inicio" subtitle="Aquí puedes ver tus libros y tu progreso de lectura." onLogout={onLogout} />
         <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
         <ReadingTimerModal
           visible={timerModalVisible}
@@ -304,19 +295,6 @@ const styles = StyleSheet.create({
   navButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-    logoutButton: {
-    position: 'absolute',
-    top: 10,
-    alignSelf: 'flex-end',
-    paddingVertical: 2,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-  },
-  logoutButtonText: {
-    color: Colors.darker,
   },
 });
 

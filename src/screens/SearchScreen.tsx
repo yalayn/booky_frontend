@@ -6,6 +6,7 @@ import { Colors } from '../styles/AppStyles';
 import { searchBook, addBook } from '../api/bookService';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import Header from '../components/Header';
 
 
 const ModalShowDetails = ({modalVisible, selectedBook, handleAddToLibrary, setModalVisible}) => {
@@ -126,9 +127,7 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Agregar</Text>
-      <Text style={styles.subtitle}>Buscar libro</Text>
-
+      <Header title="Buscar Libros" subtitle="Encuentra tu próximo libro" onLogout={null}/>
       <TextInput
         style={styles.searchInput}
         placeholder="Escribe el título del libro o el autor"
