@@ -223,12 +223,6 @@ const HomeScreenMain = ({onLogout}) => {
     { day: "Vie", hours: 3 },
   ];
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('authToken');
-    clearAccessToken();
-    onLogout(); // Esto hará que App.tsx muestre la pantalla de login
-  };
-
   const handleRegisterTime = (book:any) => {
     setSelectedBook(book);
     setTimerModalVisible(true);
@@ -267,7 +261,7 @@ const HomeScreenMain = ({onLogout}) => {
     <View style={styles.container}>
       <ScrollView>
         <View style={CardStyles.cardSpacing}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
             <Text style={styles.logoutButtonText}>Salir</Text>
           </TouchableOpacity>
           <Text style={CardStyles.title}>Home</Text>
