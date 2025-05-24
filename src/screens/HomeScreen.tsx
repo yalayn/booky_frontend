@@ -7,6 +7,8 @@ import StylesModal from "../styles/StylesModal";
 import { SectionList, SectionListContent } from "../components/SectionList";
 import { Card, CardContent } from "../components/Card";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearAccessToken } from "../api/httpClient";
 
 /**
  * Componente para mostrar el progreso de lectura
@@ -159,7 +161,6 @@ const ReadingTimerModal = ({ visible, onClose, onFinish, book }) => {
 
   const handlePause = () => setRunning(false);
   const handleStart = () => setRunning(true);
-  const handleReset = () => setSeconds(0);
   const handleFinish = () => {
     setRunning(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -207,7 +208,7 @@ const ReadingTimerModal = ({ visible, onClose, onFinish, book }) => {
  * Componente principal del rastreador de libros
  * @returns 
  */
-const HomeScreenMain = () => {
+const HomeScreenMain = ({onLogout}) => {
 
   const navigation = useNavigation();
   const [readingTime, setReadingTime]   = useState(0);
@@ -221,6 +222,12 @@ const HomeScreenMain = () => {
     { day: "Jue", hours: 2 },
     { day: "Vie", hours: 3 },
   ];
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('authToken');
+    clearAccessToken();
+    onLogout(); // Esto hará que App.tsx muestre la pantalla de login
+  };
 
   const handleRegisterTime = (book:any) => {
     setSelectedBook(book);
@@ -260,9 +267,13 @@ const HomeScreenMain = () => {
     <View style={styles.container}>
       <ScrollView>
         <View style={CardStyles.cardSpacing}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Salir</Text>
+          </TouchableOpacity>
           <Text style={CardStyles.title}>Home</Text>
           <Text style={CardStyles.subtitle}>Bienvenido a tu tracker de libros</Text>
         </View>
+
         <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
         <ReadingTimerModal
           visible={timerModalVisible}
@@ -299,6 +310,19 @@ const styles = StyleSheet.create({
   navButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+    logoutButton: {
+    position: 'absolute',
+    top: 10,
+    alignSelf: 'flex-end',
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderColor: "#ccc",
+    borderWidth: 1,
+  },
+  logoutButtonText: {
+    color: Colors.darker,
   },
 });
 
