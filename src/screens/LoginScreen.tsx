@@ -17,9 +17,7 @@ const LoginScreen = ({ onLogin }) => {
         const tokenSuccess = response?.response?.success;
         if (!tokenSuccess) throw new Error('Credenciales incorrectas');
         const token        = await response.response.data;
-        await AsyncStorage.setItem('authToken', token);
-        setAccessToken(token);
-        onLogin();
+        onLogin(token);
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo iniciar sesión');
     } finally {

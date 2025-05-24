@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_CONFIG } from '../config/apiConfig';
 
 // Simulación de obtención de token (ajusta con AsyncStorage o contexto real)
-let accessToken: string | null = "";
+let accessToken: string | null;
 
 export const setAccessToken = (token: string) => {
   accessToken = token;
