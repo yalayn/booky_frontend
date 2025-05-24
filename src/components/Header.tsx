@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Colors } from "../styles/AppStyles";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 const LogoutButton = ({ onLogout }) => {
-    console.log("onLogout", onLogout);
     if (typeof onLogout === 'function') {
         return (
             <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-                <Text style={styles.logoutButtonText}>Salir</Text>
+                <Icon name="sign-out" size={18} style={styles.logoutButtonIcon} />
             </TouchableOpacity>
         );
     }
@@ -55,38 +55,15 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: 0,
-    paddingVertical: 2,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderRadius: 8,
-    borderColor: "#ccc",
+    borderColor: "#666",
     borderWidth: 1,
   },
-  logoutButtonText: {
-    color: Colors.darker,
+  logoutButtonIcon: {
+    color: "#666",
   },
 });
-
-{/* const styles = StyleSheet.create({
-    header: {
-    marginTop: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 2,
-  },
-  subHeader:{
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between'
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  headerSubtitle: {
-    color: "#666",
-    marginBottom: 8,
-  },
-}); */}
 
 export default Header;
