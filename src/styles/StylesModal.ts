@@ -15,6 +15,11 @@ const StylesModal = StyleSheet.create({
       padding: 16,
       alignItems: 'center',
     },
+    modalBody: {
+      width: '100%',
+      padding: 0,
+      alignItems: 'center',
+    },
     modalTitle: {
       marginTop: 40,
       fontSize: 18,
@@ -82,6 +87,17 @@ const StylesModal = StyleSheet.create({
     modalTexarea: {
         width: '100%',
         height: 100,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        backgroundColor: Colors.primary,
+        color: '#fff',
+        borderRadius: 8,
+        padding: 8,
+        textAlignVertical: 'top',
+        marginBottom: 16,
+    },
+    modalInput: {
+        width: '100%',
         borderWidth: 1,
         borderColor: Colors.primary,
         backgroundColor: Colors.primary,
