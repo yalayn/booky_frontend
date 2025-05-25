@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
-    borderColor: "#666",
+    borderColor: "#ccc",
     borderWidth: 1,
   },
   logoutButtonIcon: {
