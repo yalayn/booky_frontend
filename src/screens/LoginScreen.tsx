@@ -14,45 +14,53 @@ const LoginScreen = ({ onLogin }) => {
 
   // Estado para el modal de registro
   const [registerModalVisible, setRegisterModalVisible] = useState(false);
-  const [registerName, setRegisterName]         = useState('');
-  const [registerEmail, setRegisterEmail]       = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
   const [registerLoading, setRegisterLoading]   = useState(false);
 
-  const BodyModal = () => {
+  const BodyModal = ({ onRegister, loading, onClose }) => {
+    const [registerName, setRegisterName] = useState('');
+    const [registerEmail, setRegisterEmail] = useState('');
+    const [registerPassword, setRegisterPassword] = useState('');
+
+    const handleRegisterPress = () => {
+      onRegister({ registerName, registerEmail, registerPassword });
+    };
+
     return (
-        <View style={StylesModal.modalBody}>
-            <Text style={StylesModal.modalTitle}>Registro</Text>
-            <TextInput
-                style={StylesModal.modalInput}
-                placeholder="Nombre de usuario"
-                placeholderTextColor={Colors.darker}
-                autoCapitalize="none"
-                value={registerName}
-                onChangeText={setRegisterName}
-                keyboardType="default"
-            />
-            <TextInput
-                style={StylesModal.modalInput}
-                placeholder="Email"
-                placeholderTextColor={Colors.darker}
-                autoCapitalize="none"
-                value={registerEmail}
-                onChangeText={setRegisterEmail}
-                keyboardType="email-address"
-            />
-            <TextInput
-                style={StylesModal.modalInput}
-                placeholder="Contraseña"
-                placeholderTextColor={Colors.darker}
-                secureTextEntry
-                value={registerPassword}
-                onChangeText={setRegisterPassword}
-            />
-            <TouchableOpacity style={StylesModal.modalOption} onPress={handleRegister} disabled={registerLoading}>
-            {registerLoading ? <ActivityIndicator color="#fff" /> : <Text style={StylesModal.modalOptionText}>Registrarse</Text>}
-            </TouchableOpacity>
-        </View>
+      <View style={StylesModal.modalBody}>
+        <Text style={StylesModal.modalTitle}>Registro</Text>
+        <TextInput
+          style={StylesModal.modalInput}
+          placeholder="Nombre de usuario"
+          placeholderTextColor={Colors.darker}
+          autoCapitalize="none"
+          value={registerName}
+          onChangeText={setRegisterName}
+          keyboardType="default"
+        />
+        <TextInput
+          style={StylesModal.modalInput}
+          placeholder="Email"
+          placeholderTextColor={Colors.darker}
+          autoCapitalize="none"
+          value={registerEmail}
+          onChangeText={setRegisterEmail}
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={StylesModal.modalInput}
+          placeholder="Contraseña"
+          placeholderTextColor={Colors.darker}
+          secureTextEntry
+          value={registerPassword}
+          onChangeText={setRegisterPassword}
+        />
+        <TouchableOpacity style={StylesModal.modalOption} onPress={handleRegisterPress} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={StylesModal.modalOptionText}>Registrarse</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onClose} style={{ marginTop: 12 }}>
+          <Text style={{ color: Colors.primary, textAlign: 'center' }}>Cancelar</Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -94,15 +102,14 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   // Simulación de registro (reemplaza por tu lógica real)
-  const handleRegister = async () => {
+  const handleRegister = async ({ registerName, registerEmail, registerPassword }) => {
     setRegisterLoading(true);
     try {
       // Aquí deberías llamar a tu API de registro
       // await registerUser({ email: registerEmail, password: registerPassword });
       Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión.');
+      console.log('Registro exitoso:', { registerName, registerEmail, registerPassword });
       setRegisterModalVisible(false);
-      setRegisterEmail('');
-      setRegisterPassword('');
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo registrar');
     } finally {
@@ -116,7 +123,7 @@ const LoginScreen = ({ onLogin }) => {
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
-        placeholderTextColor={Colors.lighter}
+        placeholderTextColor={Colors.tertiary}
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
@@ -125,7 +132,7 @@ const LoginScreen = ({ onLogin }) => {
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
-        placeholderTextColor={Colors.darker}
+        placeholderTextColor={Colors.tertiary}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -141,7 +148,7 @@ const LoginScreen = ({ onLogin }) => {
         </TouchableOpacity>
       </View>
       <StandarModal onVisible={registerModalVisible} onClose={() => setRegisterModalVisible(false)}>
-        <BodyModal />
+        <BodyModal onRegister={handleRegister} loading={registerLoading} onClose={() => setRegisterModalVisible(false)} />
       </StandarModal>
     </View>
   );
