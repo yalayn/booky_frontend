@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../styles/AppStyles';
-import { initLogin } from '../api/loginService';
+import { initLogin, addUser } from '../api/loginService';
 import { setAccessToken } from '../api/httpClient';
 import StylesModal from '../styles/StylesModal';
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -90,9 +90,12 @@ const LoginScreen = ({ onLogin }) => {
       const response = await initLogin({ username: email, password: password });
       const tokenSuccess = response?.response?.success;
       if (!tokenSuccess) throw new Error('Credenciales incorrectas');
-      const token = await response.response.data;
+      console.log('Login response:', response);
+      const token    = await response.response.data.token;
+      const userInfo = await response.response.data.user;
       setAccessToken(token);
       await AsyncStorage.setItem('authToken', token);
+      await AsyncStorage.setItem('authUserInfo', JSON.stringify(userInfo));
       onLogin(token);
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo iniciar sesión');
@@ -103,17 +106,20 @@ const LoginScreen = ({ onLogin }) => {
 
   // Simulación de registro (reemplaza por tu lógica real)
   const handleRegister = async ({ registerName, registerEmail, registerPassword }) => {
-    setRegisterLoading(true);
+    // setRegisterLoading(true);
     try {
-      // Aquí deberías llamar a tu API de registro
-      // await registerUser({ email: registerEmail, password: registerPassword });
-      Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión.');
-      console.log('Registro exitoso:', { registerName, registerEmail, registerPassword });
-      setRegisterModalVisible(false);
+        const response = await addUser({ name: registerName, username: registerEmail, password: registerPassword });
+        if (!response?.response?.success){
+            Alert.alert('Registro exitoso', 'Ahora puedes iniciar sesión.');
+            setRegisterModalVisible(false);
+        }else{
+            Alert.alert('Error', response?.response?.message || 'No se pudo registrar el usuario');
+            throw new Error('Error al registrar usuario');
+        }
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo registrar');
     } finally {
-      setRegisterLoading(false);
+    //   setRegisterLoading(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image, Modal } from "react-native";
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -8,6 +8,8 @@ import { SectionList, SectionListContent } from "../components/SectionList";
 import { Card, CardContent } from "../components/Card";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from "../components/Header";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 /**
  * Componente para mostrar el progreso de lectura
@@ -214,6 +216,8 @@ const HomeScreenMain = ({onLogout}) => {
   const [booksReading, setBooksReading] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
+  const [userName, setUserName] = useState('');
+
   const readingStats = [
     { day: "Lun", hours: 1 },
     { day: "Mar", hours: 2 },
@@ -231,6 +235,16 @@ const HomeScreenMain = ({onLogout}) => {
     const hours = seconds / 3600;
     setReadingTime((prev) => prev + hours);
   };
+
+  useEffect(() => {
+    const checkUserInfo = async () => {
+      const userInfo = await AsyncStorage.getItem('authUserInfo');
+      const userName = userInfo ? JSON.parse(userInfo).name : '';
+      console.log('User Info:', userInfo);
+      setUserName(userName);
+    };
+    checkUserInfo();
+  }, []);
 
   // Fetch books and update booksReading
   useFocusEffect(
@@ -255,10 +269,12 @@ const HomeScreenMain = ({onLogout}) => {
     }, [])
   );
 
+  // const subtitle = "Hola bienvenido.";
+  const subtitle = `Hola ${userName}, te damos la bienvenida.`;
   return (
     <View style={styles.container}>
       <ScrollView>
-        <Header title="Inicio" subtitle="Aquí puedes ver tus libros y tu progreso de lectura." onLogout={onLogout} />
+        <Header title="Inicio" subtitle={subtitle} onLogout={onLogout} />
         <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
         <ReadingTimerModal
           visible={timerModalVisible}
