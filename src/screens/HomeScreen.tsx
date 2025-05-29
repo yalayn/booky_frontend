@@ -9,6 +9,7 @@ import { Card, CardContent } from "../components/Card";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from "../components/Header";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getReadingSessionsToday, registerReadingSessions} from "../api/readingSessionService";
 
 
 /**
@@ -30,15 +31,15 @@ const Progress = ({ value }) => {
  * @returns
  */
 const ProgressSummary = ({readingTime,readingStats}) => {
-  const totalReadingTime    = readingStats.reduce((acc, stat) => acc + stat.hours, 0);
-  const progressValue       = (readingTime / totalReadingTime) * 100;
+  // const totalReadingTime    = readingStats.reduce((acc, stat) => acc + stat.hours, 0);
+  // const progressValue       = (readingTime / totalReadingTime) * 100;
   const redingTimeFormatted = formatTime(readingTime);
   return (
       <Card style={CardStyles.cardSpacing}>
       <CardContent>
         <Text style={CardStyles.title}>Progreso de lectura</Text>
-        <Text style={CardStyles.subtitle}>Horas leídas esta semana: {redingTimeFormatted}</Text>
-        <Progress value={progressValue} />
+        <Text style={CardStyles.subtitle}>Lectura del dia: {redingTimeFormatted}</Text>
+        {/* <Progress value={progressValue} /> */}
       </CardContent>
     </Card>
   );
@@ -50,6 +51,9 @@ const ProgressSummary = ({readingTime,readingStats}) => {
  * @returns 
  */
 const formatTime = (readingTime: number) => {
+  if (readingTime < 0 || isNaN(readingTime)) {
+    return "00:00:00";
+  }
   const hours   = Math.floor(readingTime).toString().padStart(2, "0");
   const minutes = Math.floor((readingTime % 1) * 60).toString().padStart(2, "0");
   const seconds = Math.round((((readingTime % 1) * 60) % 1) * 60).toString().padStart(2, "0");
@@ -232,15 +236,25 @@ const HomeScreenMain = ({onLogout}) => {
   };
 
   const handleTimerFinish = (seconds:any) => {
-    const hours = seconds / 3600;
-    setReadingTime((prev) => prev + hours);
+    if (!selectedBook ) {
+      console.error("No se ha seleccionado un libro.");
+      return;
+    }
+    registerReadingSessions({
+      book_id: selectedBook.book_id,
+      seconds: seconds,
+    }).then(() => {
+      const hours = seconds / 3600;
+      setReadingTime((prev) => prev + hours);
+    }).catch((error) => {
+      console.error("Error al registrar el tiempo de lectura:", error);
+    });
   };
 
   useEffect(() => {
     const checkUserInfo = async () => {
       const userInfo = await AsyncStorage.getItem('authUserInfo');
       const userName = userInfo ? JSON.parse(userInfo).name : '';
-      console.log('User Info:', userInfo);
       setUserName(userName);
     };
     checkUserInfo();
@@ -268,6 +282,24 @@ const HomeScreenMain = ({onLogout}) => {
       fetchBooks();
     }, [])
   );
+
+  useEffect(() => {
+    const fetchUserCountDay = async () => {
+      try {
+          const dataUserCountDay = await getReadingSessionsToday();
+          if (!dataUserCountDay || !dataUserCountDay.data) {
+            setReadingTime(0);
+            return;
+          }
+          const seconds = dataUserCountDay?.data?.seconds;
+          const hours = seconds / 3600;
+          setReadingTime((prev) => prev + hours);
+      } catch (error) {
+        console.error('Error al obtener el conteo diario del usuario:', error);
+      }
+    };
+    fetchUserCountDay();
+  }, []);
 
   // const subtitle = "Hola bienvenido.";
   const subtitle = `Hola ${userName}, te damos la bienvenida.`;
