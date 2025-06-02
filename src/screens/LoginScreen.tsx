@@ -5,7 +5,7 @@ import { Colors } from '../styles/AppStyles';
 import { initLogin, addUser } from '../api/loginService';
 import { setAccessToken } from '../api/httpClient';
 import StylesModal from '../styles/StylesModal';
-import Icon from "react-native-vector-icons/FontAwesome";
+import StandarModal from '../components/StandarModal';
 
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -61,26 +61,6 @@ const LoginScreen = ({ onLogin }) => {
           <Text style={{ color: Colors.primary, textAlign: 'center' }}>Cancelar</Text>
         </TouchableOpacity>
       </View>
-    );
-  };
-
-  const StandarModal = ({onClose,onVisible,children}) => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={onVisible}
-        onRequestClose={onClose}
-      >
-        <View style={StylesModal.modalOverlay}>
-          <View style={StylesModal.modalContent}>
-            <TouchableOpacity style={StylesModal.modalCloseButtonIcon} onPress={onClose}>
-                <Icon name="close" size={16} color="#fff" />
-            </TouchableOpacity>
-            {children}
-          </View>
-        </View>
-      </Modal>
     );
   };
 
