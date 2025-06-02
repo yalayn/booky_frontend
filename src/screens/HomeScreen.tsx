@@ -30,7 +30,7 @@ const Progress = ({ value }) => {
  * @param param0
  * @returns
  */
-const ProgressSummary = ({readingTime,readingStats}) => {
+const ProgressSummary = ({readingTime,readingStats,navigation}) => {
   // const totalReadingTime    = readingStats.reduce((acc, stat) => acc + stat.hours, 0);
   // const progressValue       = (readingTime / totalReadingTime) * 100;
   const redingTimeFormatted = formatTime(readingTime);
@@ -39,6 +39,18 @@ const ProgressSummary = ({readingTime,readingStats}) => {
       <CardContent>
         <Text style={CardStyles.title}>Progreso de lectura</Text>
         <Text style={CardStyles.subtitle}>Lectura del dia: {redingTimeFormatted}</Text>
+        <TouchableOpacity
+          style={CardStyles.logButton}
+          onPress={() => {
+            // Navegar a la pantalla de registros de lectura
+            // Asegúrate de tener la ruta 'ReadingLogs' en tu navegación
+            if (typeof navigation?.navigate === "function") {
+              navigation.navigate('ReadingLogs');
+            }
+          }}
+        >
+          <Text style={CardStyles.logButtonText}>Ver registros de lectura</Text>
+        </TouchableOpacity>
         {/* <Progress value={progressValue} /> */}
       </CardContent>
     </Card>
@@ -307,7 +319,7 @@ const HomeScreenMain = ({onLogout}) => {
     <View style={styles.container}>
       <ScrollView>
         <Header title="Inicio" subtitle={subtitle} onLogout={onLogout} />
-        <ProgressSummary readingTime={readingTime} readingStats={readingStats} />
+        <ProgressSummary readingTime={readingTime} readingStats={readingStats} navigation={navigation}/>
         <ReadingTimerModal
           visible={timerModalVisible}
           onClose={() => setTimerModalVisible(false)}
