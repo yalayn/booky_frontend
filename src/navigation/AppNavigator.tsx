@@ -8,12 +8,13 @@ import HomeScreen from '../screens/HomeScreen';
 import LibraryScreen from '../screens/LibraryScreen';
 import SearchScreen from '../screens/SearchScreen';
 import BookDetail from '../screens/BookDetail';
+import ReadingLogs from '../screens/ReadingLogs';
 import LoginScreen from '../screens/LoginScreen';
 import BottomMenu from '../components/BottomMenu';
 
-const Tab          = createBottomTabNavigator();
-const LibraryStack = createNativeStackNavigator();
-const HomeStack    = createNativeStackNavigator();
+const Tab             = createBottomTabNavigator();
+const LibraryStack    = createNativeStackNavigator();
+const HomeStack       = createNativeStackNavigator();
 
 const HomeStackScreen = () => {
   const { logout } = useContext(AuthContext);
@@ -24,6 +25,7 @@ const HomeStackScreen = () => {
         children={(props) => <HomeScreen {...props} onLogout={logout} />}
       />
       <HomeStack.Screen name="BookDetail" component={BookDetail} />
+      <HomeStack.Screen name="ReadingLogs" component={ReadingLogs} />
     </HomeStack.Navigator>
   );
 };
