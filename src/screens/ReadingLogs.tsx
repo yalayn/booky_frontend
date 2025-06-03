@@ -10,11 +10,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastAndroid, Platform, Alert } from "react-native";
 
 const ReadingLogs = ({ navigation }) => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modalEditLogVisible, setModalEditLogVisible] = useState(false);
-  const [modalDeleteLogVisible, setModalDeleteLogVisible] = useState(false);
-  const [selectedLog, setSelectedLog] = useState(null);
+    const [logs, setLogs]       = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [modalEditLogVisible, setModalEditLogVisible]     = useState(false);
+    const [modalDeleteLogVisible, setModalDeleteLogVisible] = useState(false);
+    const [selectedLog, setSelectedLog]                     = useState(null);
+    const [hoursEdit, setHoursEdit]     = useState('00');
+    const [minutesEdit, setMinutesEdit] = useState('00');
+    const [secondsEdit, setSecondsEdit] = useState('00');
 
     useEffect(() => {
         const fetchLogs = async () => {
@@ -45,7 +48,6 @@ const ReadingLogs = ({ navigation }) => {
                 <Text style={styles.bookSubtitle}>{new Date(item.date).toLocaleDateString()}</Text>
             </View>
             <Text style={styles.logText}>{item.book_title}</Text>
-            <Text style={styles.logText}>{item._id}</Text>
         </View>
     </Swipeable>
     );
@@ -73,7 +75,9 @@ const ReadingLogs = ({ navigation }) => {
      * @param item 
      */
     const handleEdit = (item) => {
-        console.log('Editar registro:', item);
+        setHoursEdit('');
+        setMinutesEdit('');
+        setSecondsEdit('');
         setModalEditLogVisible(true);
         setSelectedLog(item);
     };
@@ -171,38 +175,48 @@ const ReadingLogs = ({ navigation }) => {
                                     style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
                                     keyboardType="numeric"
                                     maxLength={2}
-                                    value=""
-                                    placeholder={selectedLog ? Math.floor(selectedLog.seconds / 3600).toString().padStart(2, '0') : ''}
-                                    placeholderTextColor={Colors.tertiary}
-                                />
-                                <TextInput
-                                    style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
-                                    keyboardType="numeric"
-                                    maxLength={2}
-                                    value=""
-                                    onChangeText={m => {
+                                    value={hoursEdit}
+                                    onChangeText={h => {
+                                        setHoursEdit(h.replace(/[^0-9]/g, ''));
                                         if (!selectedLog) return;
-                                        const hours = Math.floor(selectedLog.seconds / 3600);
-                                        const minutes = parseInt(m) || 0;
-                                        const seconds = selectedLog.seconds % 60;
+                                        const hours = parseInt(h) || 0;
+                                        const minutes = parseInt(minutesEdit) || 0;
+                                        const seconds = parseInt(secondsEdit) || 0;
                                         setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
                                     }}
-                                    placeholder={selectedLog ? Math.floor((selectedLog.seconds % 3600) / 60).toString().padStart(2, '0') : ''}
+                                    placeholder={selectedLog ? Math.floor(selectedLog.seconds / 3600).toString().padStart(2, '0') : '00'}
                                     placeholderTextColor={Colors.tertiary}
                                 />
                                 <TextInput
                                     style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
                                     keyboardType="numeric"
                                     maxLength={2}
-                                    value=""
-                                    onChangeText={s => {
+                                    value={minutesEdit}
+                                    onChangeText={m => {
+                                        setMinutesEdit(m.replace(/[^0-9]/g, ''));
                                         if (!selectedLog) return;
-                                        const hours = Math.floor(selectedLog.seconds / 3600);
-                                        const minutes = Math.floor((selectedLog.seconds % 3600) / 60);
+                                        const hours = parseInt(hoursEdit) || 0;
+                                        const minutes = parseInt(m) || 0;
+                                        const seconds = parseInt(secondsEdit) || 0;
+                                        setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
+                                    }}
+                                    placeholder={selectedLog ? Math.floor((selectedLog.seconds % 3600) / 60).toString().padStart(2, '0') : '00'}
+                                    placeholderTextColor={Colors.tertiary}
+                                />
+                                <TextInput
+                                    style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                                    keyboardType="numeric"
+                                    maxLength={2}
+                                    value={secondsEdit}
+                                    onChangeText={s => {
+                                        setSecondsEdit(s.replace(/[^0-9]/g, ''));
+                                        if (!selectedLog) return;
+                                        const hours = parseInt(hoursEdit) || 0;
+                                        const minutes = parseInt(minutesEdit) || 0;
                                         const seconds = parseInt(s) || 0;
                                         setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
                                     }}
-                                    placeholder={selectedLog ? (selectedLog.seconds % 60).toString().padStart(2, '0') : ''}
+                                    placeholder={selectedLog ? (selectedLog.seconds % 60).toString().padStart(2, '0') : '00'}
                                     placeholderTextColor={Colors.tertiary}
                                 />
                             </View>
