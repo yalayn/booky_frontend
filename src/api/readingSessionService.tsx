@@ -11,14 +11,13 @@ export const registerReadingSessions = async (jsonParams:any) => {
 
 /**
  * Actualiza una sesión de lectura.
- * @param _id 
  * @param jsonParams 
  * @returns 
  */
-export const updateReadingSessions = async (_id:any, jsonParams:any) => {
-  const response = await httpClient.put('/reading-sessions/update/' + _id, jsonParams);
+export const updateReadingSessions = async (jsonParams:any) => {
+  const response = await httpClient.put('/reading-sessions/update/',jsonParams);
   return response.data;
-}
+};
 
 /**
  * Elimina una sesión de lectura.
@@ -37,7 +36,7 @@ export const deleteReadingSessions = async (_id:any) => {
 export const getReadingSessionsHistory = async () => {
   const response = await httpClient.get('/reading-sessions/history');
   return response.data;
-}
+};
 
 /**
  * Obtiene las sesiones de lectura del día actual.

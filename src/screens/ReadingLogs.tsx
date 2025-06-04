@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
-import { getReadingSessionsHistory, deleteReadingSessions } from "../api/readingSessionService";
+import { getReadingSessionsHistory, deleteReadingSessions, updateReadingSessions } from "../api/readingSessionService";
 import { Colors } from "../styles/AppStyles";
 import Icon from "react-native-vector-icons/FontAwesome";
 import StandarModal from "../components/StandarModal";
@@ -92,11 +92,92 @@ const ReadingLogs = ({ navigation }) => {
     };
 
     /**
+     * Actualiza un registro de lectura.
+     * @returns 
+     */
+    const onEditBook = () => {
+
+        const SECOND_TODAY = 86400; // 24 horas en segundos
+
+        if (!selectedLog) return;
+
+        let message = "";
+        if(!hoursEdit && !minutesEdit && !secondsEdit) {
+            message = "No se encontraron cambios para actualizar";
+        }
+
+        if( (selectedLog?._id === undefined || selectedLog?._id === null) && 
+            (selectedLog?.date === undefined || selectedLog?.date === null)
+        ) {
+             message = "No se puede actualizar el registro";
+        }
+
+        
+        const second = (parseInt(hoursEdit) || 0) * 3600 + (parseInt(minutesEdit) || 0) * 60 + (parseInt(secondsEdit) || 0);
+        
+        if (second > SECOND_TODAY) {
+            message = "Las horas no pueden exceder el dia (24 horas)";
+        }
+        
+        if (message !== "") {
+            if( Platform.OS === "android") {
+                ToastAndroid.show(message, ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Advertencia", message);
+            }
+            return;
+        }
+
+        const updatedLog = {
+            id        : selectedLog?._id,
+            date      : selectedLog?.date,
+            book_id   : selectedLog?.book_id,
+            seconds   : second
+        };
+
+        updateReadingSessions(updatedLog)
+        .then(response => {
+
+            if (!response.success) {
+                if (Platform.OS === "android") {
+                    ToastAndroid.show(response.message || 'No se pudo actualizar el registro', ToastAndroid.SHORT);
+                } else {
+                    Alert.alert("Error", response.message || 'No se pudo actualizar el registro');
+                }
+                return;
+            }
+
+            selectedLog['seconds'] = second;
+            setLogs(prevLogs => prevLogs.map(log => log._id === selectedLog._id ? selectedLog : log));
+            if (Platform.OS === "android") {
+                ToastAndroid.show("Registro actualizado con éxito", ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Éxito", "Registro actualizado con éxito");
+            }
+            setSelectedLog(null);
+            setModalEditLogVisible(false);
+        }
+        )
+        .catch(error => {
+            console.error('Error al actualizar el registro:', error);
+            if (Platform.OS === "android") {
+                ToastAndroid.show("Error al actualizar el registro", ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Error", "No se pudo actualizar el registro");
+            }
+        }
+        );
+    };
+
+    /**
      * Elimina un registro de lectura.
      * @param selectedLog 
      */
     const onDeleteBook = (selectedLog) => {
         if (!selectedLog) return;
+        setSelectedLog(null);
+        setModalDeleteLogVisible(false);
+
         deleteReadingSessions(selectedLog._id)
         .then(response => {
             setLogs(prevLogs => prevLogs.filter(log => log?._id !== selectedLog?._id));
@@ -105,8 +186,6 @@ const ReadingLogs = ({ navigation }) => {
             } else {
                 Alert.alert("Éxito", "Registro eliminado con éxito");
             }
-            setSelectedLog(null);
-            setModalDeleteLogVisible(false);
         })
         .catch(error => {
             console.error('Error al eliminar el registro:', error);
@@ -222,7 +301,7 @@ const ReadingLogs = ({ navigation }) => {
                             </View>
                         </View>
                         <View style={StylesModal.modalButtonContainer}>
-                            <TouchableOpacity style={StylesModal.modalButton} onPress={() => console.log('Editar registro')}>
+                            <TouchableOpacity style={StylesModal.modalButton} onPress={() => onEditBook()} >
                                 <Text style={StylesModal.modalOptionText}>Guardar</Text>
                             </TouchableOpacity>
                         </View>
@@ -239,7 +318,7 @@ const ReadingLogs = ({ navigation }) => {
                             <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalCancelButton]} onPress={() => setModalDeleteLogVisible(false)} >
                                 <Text style={StylesModal.modalButtonText}>Cancelar</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalConfirmButton]} onPress={() => { setModalDeleteLogVisible(false); onDeleteBook(selectedLog); }} >
+                            <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalConfirmButton]} onPress={() => { onDeleteBook(selectedLog); }} >
                                 <Text style={StylesModal.modalButtonText}>Eliminar</Text>
                             </TouchableOpacity>
                         </View>
