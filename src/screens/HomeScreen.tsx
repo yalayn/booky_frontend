@@ -31,8 +31,6 @@ const Progress = ({ value }) => {
  * @returns
  */
 const ProgressSummary = ({readingTime,readingStats,navigation}) => {
-  // const totalReadingTime    = readingStats.reduce((acc, stat) => acc + stat.hours, 0);
-  // const progressValue       = (readingTime / totalReadingTime) * 100;
   const redingTimeFormatted = formatTime(readingTime);
   return (
       <Card style={CardStyles.cardSpacing}>
@@ -247,6 +245,12 @@ const HomeScreenMain = ({onLogout}) => {
     setTimerModalVisible(true);
   };
 
+  /**
+   * Acción que se ejecuta cuando el temporizador finaliza
+   * Registra la sesión de lectura y actualiza el tiempo de lectura
+   * @param seconds
+   * @returns 
+   */
   const handleTimerFinish = (seconds:any) => {
     if (!selectedBook ) {
       console.error("No se ha seleccionado un libro.");
@@ -263,6 +267,12 @@ const HomeScreenMain = ({onLogout}) => {
     });
   };
 
+  /**
+   * Efecto para obtener el nombre del usuario
+   * y actualizar el estado del nombre del usuario
+   * Este efecto se ejecuta una sola vez cuando el componente se monta.
+   * @returns {void}
+   */
   useEffect(() => {
     const checkUserInfo = async () => {
       const userInfo = await AsyncStorage.getItem('authUserInfo');
@@ -272,7 +282,13 @@ const HomeScreenMain = ({onLogout}) => {
     checkUserInfo();
   }, []);
 
-  // Fetch books and update booksReading
+  /**
+   * Efecto para obtener la lista de libros del usuario
+   * y actualizar la lista de libros en curso
+   * Este efecto se ejecuta cada vez que la pantalla gana el foco.
+   * Esto es útil para actualizar la lista de libros cada vez que el usuario regresa a la pantalla.
+   * @returns {void}
+   */
   useFocusEffect(
     React.useCallback(() => {
       const fetchBooks = async () => {
@@ -295,25 +311,33 @@ const HomeScreenMain = ({onLogout}) => {
     }, [])
   );
 
-  useEffect(() => {
-    const fetchUserCountDay = async () => {
-      try {
-          const dataUserCountDay = await getReadingSessionsToday();
-          if (!dataUserCountDay || !dataUserCountDay.data) {
-            setReadingTime(0);
-            return;
-          }
-          const seconds = dataUserCountDay?.data?.seconds;
-          const hours = seconds / 3600;
-          setReadingTime((prev) => prev + hours);
-      } catch (error) {
-        console.error('Error al obtener el conteo diario del usuario:', error);
-      }
-    };
-    fetchUserCountDay();
-  }, []);
+  /**
+   * Efecto para obtener el conteo diario de lectura del usuario
+   * y actualizar el tiempo de lectura
+   * Este efecto se ejecuta cada vez que la pantalla gana el foco.
+   * Esto es útil para actualizar el tiempo de lectura cada vez que el usuario regresa a la pantalla.
+   * @returns {void}
+   */
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUserCountDay = async () => {
+        try {
+            const dataUserCountDay = await getReadingSessionsToday();
+            if (!dataUserCountDay || !dataUserCountDay.data) {
+              setReadingTime(0);
+              return;
+            }
+            const seconds = dataUserCountDay?.data?.seconds;
+            const hours = seconds / 3600 || 0; // Convertir segundos a horas
+            setReadingTime(hours);
+        } catch (error) {
+          console.error('Error al obtener el conteo diario del usuario:', error);
+        }
+      };
+      fetchUserCountDay();
+    }, [])
+  );
 
-  // const subtitle = "Hola bienvenido.";
   const subtitle = `Hola ${userName}, te damos la bienvenida.`;
   return (
     <View style={styles.container}>
