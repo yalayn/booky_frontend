@@ -1,24 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
-import { getReadingSessionsHistory, deleteReadingSessions, updateReadingSessions } from "../api/readingSessionService";
+import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from "react-native";
+import { getReadingSessionsHistory, registerReadingSessions, updateReadingSessions, deleteReadingSessions  } from "../api/readingSessionService";
+import { getBooks } from "../api/bookService";
 import { Colors } from "../styles/AppStyles";
-import Icon from "react-native-vector-icons/FontAwesome";
-import StandarModal from "../components/StandarModal";
-import StylesModal from "../styles/StylesModal";
 import { Swipeable } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastAndroid, Platform, Alert } from "react-native";
+import StandarModal from "../components/StandarModal";
+import StylesModal from "../styles/StylesModal";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const ReadingLogs = ({ navigation }) => {
-    const [logs, setLogs]       = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [modalEditLogVisible, setModalEditLogVisible]     = useState(false);
+    const [logs, setLogs]               = useState([]);
+    const [loading, setLoading]         = useState(true);
+    const [selectedLog, setSelectedLog] = useState(null);
+    
+    const [modalAddLogVisible, setModalAddLogVisible] = useState(false);
+    const [addDate, setAddDate]           = useState(new Date().toISOString().split('T')[0]); // Formato YYYY-MM-DD
+    const [addHours, setAddHours]         = useState('');
+    const [addMinutes, setAddMinutes]     = useState('');
+    const [addSeconds, setAddSeconds]     = useState('');
+    const [addBookId, setAddBookId]       = useState(null);
+    const [addBookTitle, setAddBookTitle] = useState('');
+    
+    const [modalEditLogVisible, setModalEditLogVisible] = useState(false);
+    const [editHours, setEditHours]     = useState('00');
+    const [editMinutes, setEditMinutes] = useState('00');
+    const [editSeconds, setEditSeconds] = useState('00');
+    
     const [modalDeleteLogVisible, setModalDeleteLogVisible] = useState(false);
-    const [selectedLog, setSelectedLog]                     = useState(null);
-    const [hoursEdit, setHoursEdit]     = useState('00');
-    const [minutesEdit, setMinutesEdit] = useState('00');
-    const [secondsEdit, setSecondsEdit] = useState('00');
-
+    
     useEffect(() => {
         const fetchLogs = async () => {
         try {
@@ -70,14 +81,19 @@ const ReadingLogs = ({ navigation }) => {
         </View>
     );
 
+    const handleAdd = () => {
+        setAddDate(new Date().toISOString().split('T')[0]); // Resetea la fecha al día actual
+        setModalAddLogVisible(true);
+    };
+
     /**
      * Maneja la edición de un registro de lectura.
      * @param item 
      */
     const handleEdit = (item) => {
-        setHoursEdit('');
-        setMinutesEdit('');
-        setSecondsEdit('');
+        setEditHours('');
+        setEditMinutes('');
+        setEditSeconds('');
         setModalEditLogVisible(true);
         setSelectedLog(item);
     };
@@ -91,6 +107,69 @@ const ReadingLogs = ({ navigation }) => {
         setModalDeleteLogVisible(true);
     };
 
+    const onAddBookLog = () => {
+
+        console.log("onAddBookLog", addDate, addHours, addMinutes, addSeconds, addBookId);
+        const SECOND_TODAY = 86400; // 24 horas en segundos
+        let message = "";
+        const second = (parseInt(addHours) || 0) * 3600 + (parseInt(addMinutes) || 0) * 60 + (parseInt(addSeconds) || 0);
+        
+        if (addBookId === null || addBookId === undefined) {
+            message = "Por favor, selecciona un libro.";
+        }
+        
+        if (!addDate) {
+            message = "Por favor, verifique la fecha.";
+        }
+
+        if (second === 0) {
+            message = "Por favor, ingrese un tiempo de lectura válido.";
+        }
+
+        if (second > SECOND_TODAY) {
+            message = "Las horas no pueden exceder el dia (24 horas)";
+        }
+
+        if (message !== "") {
+            if (Platform.OS === "android") {
+                ToastAndroid.show(message, ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Advertencia", message);
+            }
+            return;
+        }
+        const newLog = {
+            date: addDate,
+            book_id: addBookId,
+            seconds: second
+        };
+
+        registerReadingSessions(newLog).then(() => {
+            setLogs(prevLogs => [...prevLogs, { ...newLog, _id: Date.now().toString(), book_title: addBookTitle }]);
+            if (Platform.OS === "android") {
+                ToastAndroid.show("Registro agregado con éxito", ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Éxito", "Registro agregado con éxito");
+            }
+            setModalAddLogVisible(false);
+            // Resetea los campos del modal
+            setAddDate(new Date().toISOString().split('T')[0]);
+            setAddHours('');
+            setAddMinutes('');
+            setAddSeconds('');
+            setAddBookId(null);
+            setAddBookTitle('');
+        }).catch((error) => {
+            console.error('Error al agregar el registro:', error);
+            if (Platform.OS === "android") {
+                ToastAndroid.show("Error al agregar el registro", ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Error", "No se pudo agregar el registro");
+            }
+        });
+        
+    };
+
     /**
      * Actualiza un registro de lectura.
      * @returns 
@@ -102,7 +181,7 @@ const ReadingLogs = ({ navigation }) => {
         if (!selectedLog) return;
 
         let message = "";
-        if(!hoursEdit && !minutesEdit && !secondsEdit) {
+        if(!editHours && !editMinutes && !editSeconds) {
             message = "No se encontraron cambios para actualizar";
         }
 
@@ -113,7 +192,7 @@ const ReadingLogs = ({ navigation }) => {
         }
 
         
-        const second = (parseInt(hoursEdit) || 0) * 3600 + (parseInt(minutesEdit) || 0) * 60 + (parseInt(secondsEdit) || 0);
+        const second = (parseInt(editHours) || 0) * 3600 + (parseInt(editMinutes) || 0) * 60 + (parseInt(editSeconds) || 0);
         
         if (second > SECOND_TODAY) {
             message = "Las horas no pueden exceder el dia (24 horas)";
@@ -219,12 +298,24 @@ const ReadingLogs = ({ navigation }) => {
                 {/* Aquí puedes agregar más detalles del libro si es necesario */}
                 <View style={styles.header}>
                     <Text style={styles.title}>Historial de Lecturas</Text>
+
                     <View style={styles.bookSetionMain}>
                         <View style={styles.bookSetionMainContainer}>
                             <Text style={styles.subtitles}>Registros de Lectura</Text>
                             <Text style={styles.italics}>Tiempos de lectura registrados:</Text>
                         </View>
                     </View>
+
+                    {/* Botón para agregar registro */}
+                    <View style={{ marginBottom: 8 }}>
+                        <TouchableOpacity
+                            style={styles.logButton}
+                            onPress={handleAdd}
+                        >
+                            <Text style={styles.logButtonText}>Agregar</Text>
+                        </TouchableOpacity>
+                    </View>
+            
                 </View>
                 { loading && (
                     <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
@@ -241,100 +332,303 @@ const ReadingLogs = ({ navigation }) => {
                     contentContainerStyle={{ paddingBottom: 24 }}
                 />
 
+                {/* Modal para agregar registro */}
+                <AddModal 
+                    onVisible={modalAddLogVisible} 
+                    onClose={() => setModalAddLogVisible(false)}
+                    onSave={onAddBookLog}
+                    addDate={addDate}
+                    setAddDate={setAddDate}
+                    addHours={addHours}
+                    setAddHours={setAddHours}
+                    addMinutes={addMinutes}
+                    setAddMinutes={setAddMinutes}
+                    addSeconds={addSeconds}
+                    setAddSeconds={setAddSeconds}
+                    addBookId={addBookId}
+                    setAddBookId={setAddBookId}
+                    addBookTitle={addBookTitle}
+                    setAddBookTitle={setAddBookTitle}
+                />
+                
                 {/* Modal de edicion */}
-                <StandarModal onVisible={modalEditLogVisible} onClose={() => setModalEditLogVisible(false)} >
-                    <View style={{marginTop: 40, alignItems: 'center'}}>
-                        <Text style={StylesModal.modalTitle}>{selectedLog?.book_title}</Text>
-                        <Text style={StylesModal.modalSubtitle}>{new Date(selectedLog?.date).toLocaleDateString()}</Text>
-                        {/* <Text style={StylesModal.modalTitleXL}>{formatTime(selectedLog?.seconds)}</Text> */}
-                        <View style={{ width: '100%', alignItems: 'center', marginVertical: 16 }}>
-                        
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                                <TextInput
-                                    style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
-                                    keyboardType="numeric"
-                                    maxLength={2}
-                                    value={hoursEdit}
-                                    onChangeText={h => {
-                                        setHoursEdit(h.replace(/[^0-9]/g, ''));
-                                        if (!selectedLog) return;
-                                        const hours = parseInt(h) || 0;
-                                        const minutes = parseInt(minutesEdit) || 0;
-                                        const seconds = parseInt(secondsEdit) || 0;
-                                        setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                                    }}
-                                    placeholder={selectedLog ? Math.floor(selectedLog.seconds / 3600).toString().padStart(2, '0') : '00'}
-                                    placeholderTextColor={Colors.tertiary}
-                                />
-                                <TextInput
-                                    style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
-                                    keyboardType="numeric"
-                                    maxLength={2}
-                                    value={minutesEdit}
-                                    onChangeText={m => {
-                                        setMinutesEdit(m.replace(/[^0-9]/g, ''));
-                                        if (!selectedLog) return;
-                                        const hours = parseInt(hoursEdit) || 0;
-                                        const minutes = parseInt(m) || 0;
-                                        const seconds = parseInt(secondsEdit) || 0;
-                                        setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                                    }}
-                                    placeholder={selectedLog ? Math.floor((selectedLog.seconds % 3600) / 60).toString().padStart(2, '0') : '00'}
-                                    placeholderTextColor={Colors.tertiary}
-                                />
-                                <TextInput
-                                    style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
-                                    keyboardType="numeric"
-                                    maxLength={2}
-                                    value={secondsEdit}
-                                    onChangeText={s => {
-                                        setSecondsEdit(s.replace(/[^0-9]/g, ''));
-                                        if (!selectedLog) return;
-                                        const hours = parseInt(hoursEdit) || 0;
-                                        const minutes = parseInt(minutesEdit) || 0;
-                                        const seconds = parseInt(s) || 0;
-                                        setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                                    }}
-                                    placeholder={selectedLog ? (selectedLog.seconds % 60).toString().padStart(2, '0') : '00'}
-                                    placeholderTextColor={Colors.tertiary}
-                                />
-                            </View>
-                        </View>
-                        <View style={StylesModal.modalButtonContainer}>
-                            <TouchableOpacity style={StylesModal.modalButton} onPress={() => onEditBook()} >
-                                <Text style={StylesModal.modalOptionText}>Guardar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </StandarModal>
+                <EditModal 
+                    onVisible={modalEditLogVisible} 
+                    onClose={() => setModalEditLogVisible(false)}
+                    onSave= {() => onEditBook()}
+                    selectedLog={selectedLog}
+                    setSelectedLog={setSelectedLog}
+                    editHours={editHours}
+                    setEditHours={setEditHours}
+                    editMinutes={editMinutes}
+                    setEditMinutes={setEditMinutes}
+                    editSeconds={editSeconds}
+                    setEditSeconds={setEditSeconds}
+                />
 
                 {/* Modal de eliminacion */}
-                <StandarModal onVisible={modalDeleteLogVisible} onClose={() => setModalDeleteLogVisible(false)} >
-                    <View style={{ padding: 20, alignItems: 'center' }}>
-                        <Text style={StylesModal.modalTitle}>Confirmar accion.</Text>
-                        <Text style={StylesModal.modalMessage}>¿Estás seguro de que deseas eliminar este registro?</Text>
-                        <Text style={StylesModal.modalMessage}>Esta acción no se puede deshacer.</Text>
-                        <View style={StylesModal.modalButtonContainer}>
-                            <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalCancelButton]} onPress={() => setModalDeleteLogVisible(false)} >
-                                <Text style={StylesModal.modalButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalConfirmButton]} onPress={() => { onDeleteBook(selectedLog); }} >
-                                <Text style={StylesModal.modalButtonText}>Eliminar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </StandarModal>
+                <DeleteModal
+                    onVisible={modalDeleteLogVisible}
+                    onClose={() => setModalDeleteLogVisible(false)}
+                    onDelete={() => onDeleteBook(selectedLog)}
+                    selectedLog={selectedLog}
+                />
             </View>
         </GestureHandlerRootView>
     );
 };
+
+/**
+    * Modal para agregar un nuevo registro de lectura.
+    * @param props 
+    * @returns 
+*/
+const AddModal = (props) => {
+    const { onVisible, onClose, onSave, addDate, setAddDate, addHours, setAddHours, addMinutes, setAddMinutes, addSeconds, setAddSeconds, addBookId, setAddBookId, addBookTitle, setAddBookTitle } = props;
+
+    const [showBooksDropdown, setShowBooksDropdown] = useState(false);
+    const [booksInProgress, setBooksInProgress] = useState([]);
+    useEffect(() => {
+        const fetchBooksInProgress = async () => {
+            try {
+                const listBooks = {};
+                const data = await getBooks();
+                Object.entries(data).forEach(([state, books]) => {
+                    listBooks[state] = [];
+                    books.forEach((book: any) => {
+                        listBooks[state].push(book);
+                    });
+                });
+                setBooksInProgress(listBooks["reading"]);
+            } catch (error) {
+                console.error("Error al obtener libros en curso:", error);
+            }
+        };
+        fetchBooksInProgress();
+    }
+    , []);
+
+    return (
+        <StandarModal onVisible={onVisible} onClose={onClose}>
+            <View style={{marginTop: 40, alignItems: 'center', width: 300}}>
+                <Text style={StylesModal.modalTitle}>Agregar Registro</Text>
+
+                {/* Hora */}
+                <Text style={StylesModal.modalSubtitle}>Tiempo de Lectura (hh:mm:ss)</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
+                    <TextInput
+                        style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                        keyboardType="numeric"
+                        maxLength={2}
+                        value={addHours}
+                        onChangeText={h => setAddHours(h.replace(/[^0-9]/g, ''))}
+                        placeholder="00"
+                        placeholderTextColor={Colors.tertiary}
+                    />
+                    <TextInput
+                        style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                        keyboardType="numeric"
+                        maxLength={2}
+                        value={addMinutes}
+                        onChangeText={m => setAddMinutes(m.replace(/[^0-9]/g, ''))}
+                        placeholder="00"
+                        placeholderTextColor={Colors.tertiary}
+                    />
+                    <TextInput
+                        style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                        keyboardType="numeric"
+                        maxLength={2}
+                        value={addSeconds}
+                        onChangeText={s => setAddSeconds(s.replace(/[^0-9]/g, ''))}
+                        placeholder="00"
+                        placeholderTextColor={Colors.tertiary}
+                    />
+                </View>
+
+                {/* Fecha */}
+                <TextInput
+                    style={[StylesModal.modalInput, {width: '100%', textAlign: 'center'}]}
+                    placeholder="YYYY-MM-DD"
+                    value={addDate}
+                    placeholderTextColor={Colors.tertiary}
+                    keyboardType="numeric"
+                    maxLength={10}
+                    onChangeText={text => {
+                        // Solo permite números y guiones, y aplica la máscara YYYY-MM-DD
+                        let cleaned = text.replace(/[^0-9]/g, '');
+                        let masked = '';
+                        if (cleaned.length > 0) masked = cleaned.substring(0, 4);
+                        if (cleaned.length >= 5) masked += '-' + cleaned.substring(4, 6);
+                        if (cleaned.length >= 7) masked += '-' + cleaned.substring(6, 8);
+                        setAddDate(masked);
+                    }}
+                />
+                
+                {/* Libros en curso */}
+                <View style={{width: '100%', marginBottom: 16}}>
+                    <TouchableOpacity
+                        style={[StylesModal.modalInput, {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}
+                        onPress={() => setShowBooksDropdown(!showBooksDropdown)}
+                    >
+                        <Text style={{color: addBookId ? Colors.white : Colors.tertiary}}>
+                            {addBookTitle || 'Selecciona un libro'}
+                        </Text>
+                        <Icon name={showBooksDropdown ? "chevron-up" : "chevron-down"} size={16} color={Colors.tertiary} />
+                    </TouchableOpacity>
+                    {showBooksDropdown && (
+                        <View style={{
+                            backgroundColor: Colors.primary,
+                            borderRadius: 8,
+                            maxHeight: 140,
+                        }}>
+                            <ScrollView style={{ maxHeight: 140 }}>
+                                {booksInProgress.length === 0 ? (
+                                    <Text style={{color: Colors.tertiary, padding: 8}}>No hay libros en curso</Text>
+                                ) : (
+                                    booksInProgress.map((book, idx) => (
+                                      <TouchableOpacity
+                                        key={book._id ? book._id.toString() : `book-${idx}`}
+                                        style={{paddingHorizontal: 10, paddingTop: 10}}
+                                        onPress={() => {
+                                            setAddBookId(book.book_id);
+                                            setAddBookTitle(book.title);
+                                            setShowBooksDropdown(false);
+                                        }}
+                                      >
+                                        <Text style={{
+                                          color: Colors.white, 
+                                          borderColor: Colors.darker, 
+                                          borderWidth:1,
+                                          borderRadius: 8,
+                                          paddingHorizontal: 12,
+                                          paddingVertical: 8,
+                                        }}>{book.title}</Text>
+                                      </TouchableOpacity>
+                                    ))
+                                )}
+                            </ScrollView>
+                        </View>
+                    )}
+                </View>
+
+                <View style={StylesModal.modalButtonContainer}>
+                    <TouchableOpacity style={StylesModal.modalButton} onPress={onSave}>
+                        <Text style={StylesModal.modalOptionText}>Agregar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </StandarModal>
+    )
+};
+
+/**
+ * Modal para editar un registro de lectura.
+ * @param props 
+ * @returns 
+ */
+const EditModal = (props) => {
+    const { onVisible, onClose, onSave, selectedLog, setSelectedLog, editHours, setEditHours, editMinutes, setEditMinutes, editSeconds, setEditSeconds } = props;
+    return (
+        <StandarModal onVisible={onVisible} onClose={onClose} >
+            <View style={{marginTop: 40, alignItems: 'center'}}>
+                <Text style={StylesModal.modalTitle}>{selectedLog?.book_title}</Text>
+                <Text style={StylesModal.modalSubtitle}>{new Date(selectedLog?.date).toLocaleDateString()}</Text>
+                <View style={{ width: '100%', alignItems: 'center', marginVertical: 16 }}>
+                
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <TextInput
+                            style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                            keyboardType="numeric"
+                            maxLength={2}
+                            value={editHours}
+                            onChangeText={h => {
+                                setEditHours(h.replace(/[^0-9]/g, ''));
+                                if (!selectedLog) return;
+                                const hours = parseInt(h) || 0;
+                                const minutes = parseInt(editMinutes) || 0;
+                                const seconds = parseInt(editSeconds) || 0;
+                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
+                            }}
+                            placeholder={selectedLog ? Math.floor(selectedLog.seconds / 3600).toString().padStart(2, '0') : '00'}
+                            placeholderTextColor={Colors.tertiary}
+                        />
+                        <TextInput
+                            style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                            keyboardType="numeric"
+                            maxLength={2}
+                            value={editMinutes}
+                            onChangeText={m => {
+                                setEditMinutes(m.replace(/[^0-9]/g, ''));
+                                if (!selectedLog) return;
+                                const hours = parseInt(editHours) || 0;
+                                const minutes = parseInt(m) || 0;
+                                const seconds = parseInt(editSeconds) || 0;
+                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
+                            }}
+                            placeholder={selectedLog ? Math.floor((selectedLog.seconds % 3600) / 60).toString().padStart(2, '0') : '00'}
+                            placeholderTextColor={Colors.tertiary}
+                        />
+                        <TextInput
+                            style={[StylesModal.modalInput, { width: 60, textAlign: 'center', marginHorizontal: 2, fontSize: 24 }]}
+                            keyboardType="numeric"
+                            maxLength={2}
+                            value={editSeconds}
+                            onChangeText={s => {
+                                setEditSeconds(s.replace(/[^0-9]/g, ''));
+                                if (!selectedLog) return;
+                                const hours = parseInt(editHours) || 0;
+                                const minutes = parseInt(editMinutes) || 0;
+                                const seconds = parseInt(s) || 0;
+                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
+                            }}
+                            placeholder={selectedLog ? (selectedLog.seconds % 60).toString().padStart(2, '0') : '00'}
+                            placeholderTextColor={Colors.tertiary}
+                        />
+                    </View>
+                </View>
+                <View style={StylesModal.modalButtonContainer}>
+                    <TouchableOpacity style={StylesModal.modalButton} onPress={onSave} >
+                        <Text style={StylesModal.modalOptionText}>Guardar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </StandarModal>
+    );
+}
+
+/**
+ * Modal para confirmar la eliminación de un registro de lectura.
+ * @param props 
+ * @returns 
+ */
+const DeleteModal = (props) => {
+    const { onVisible, onClose, onDelete, selectedLog } = props;
+
+    return (
+        <StandarModal onVisible={onVisible} onClose={onClose} >
+            <View style={{ padding: 20, alignItems: 'center' }}>
+                <Text style={StylesModal.modalTitle}>Confirmar accion.</Text>
+                <Text style={StylesModal.modalMessage}>¿Estás seguro de que deseas eliminar este registro?</Text>
+                <Text style={StylesModal.modalMessage}>Esta acción no se puede deshacer.</Text>
+                <View style={StylesModal.modalButtonContainer}>
+                    <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalCancelButton]} onPress={onClose} >
+                        <Text style={StylesModal.modalButtonText}>Cancelar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[StylesModal.modalButton, StylesModal.modalConfirmButton]} onPress={onDelete} >
+                        <Text style={StylesModal.modalButtonText}>Eliminar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </StandarModal>
+    );
+}
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
         backgroundColor: Colors.darker,
-        paddingBottom: 80,
+        paddingBottom: 40,
     },
     title: {
         fontSize: 24,
@@ -345,11 +639,11 @@ const styles = StyleSheet.create({
     header: {
         marginTop: 16,
         borderRadius: 12,
-        marginBottom: 16,
+        marginBottom: 4,
         elevation: 2,
     },
     bookSetionMain: {
-        marginBottom: 16,
+        marginBottom: 4,
         backgroundColor: Colors.darker,
         borderRadius: 12,
         padding: 16,
@@ -545,7 +839,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     swipeableButton: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         width: 64,
@@ -553,6 +847,21 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         flexDirection: 'column',
         marginLeft: 4,
+    },
+    logButton: {
+        backgroundColor: Colors.primary,
+        borderWidth: 1,
+        borderColor: "#403E3B",
+        padding: 10,
+        borderRadius: 28,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    logButtonText: {
+        color: Colors.white,
+        marginLeft: 8,
+        fontWeight: "bold",
     },
 });
 
