@@ -68,15 +68,13 @@ const LoginScreen = ({ onLogin }) => {
     setLoading(true);
     try {
       const response = await initLogin({ username: email, password: password });
-      const tokenSuccess = response?.response?.success;
+      const tokenSuccess = response?.success;
       if (!tokenSuccess) throw new Error('Credenciales incorrectas');
-      console.log('Login response:', response);
-      const token    = await response.response.data.token;
-      const userInfo = await response.response.data.user;
-      setAccessToken(token);
-      await AsyncStorage.setItem('authToken', token);
-      await AsyncStorage.setItem('authUserInfo', JSON.stringify(userInfo));
-      onLogin(token);
+      const data = response.data;
+      const accessToken  = data.token;
+      const refreshToken = data.refresh_token;
+      const userInfo     = data.user;
+      onLogin({accessToken,refreshToken,userInfo});
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo iniciar sesión');
     } finally {
@@ -86,7 +84,7 @@ const LoginScreen = ({ onLogin }) => {
 
   // Simulación de registro (reemplaza por tu lógica real)
   const handleRegister = async ({ registerName, registerEmail, registerPassword }) => {
-    // setRegisterLoading(true);
+    setRegisterLoading(true);
     try {
         const response = await addUser({ name: registerName, username: registerEmail, password: registerPassword });
         if (!response?.response?.success){
@@ -99,7 +97,7 @@ const LoginScreen = ({ onLogin }) => {
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo registrar');
     } finally {
-    //   setRegisterLoading(false);
+      setRegisterLoading(false);
     }
   };
 

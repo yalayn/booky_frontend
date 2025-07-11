@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from "../components/Header";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getReadingSessionsToday, registerReadingSessions} from "../api/readingSessionService";
+import { initLogout } from "../api/loginService";
 
 
 /**
@@ -268,6 +269,32 @@ const HomeScreenMain = ({onLogout}) => {
   };
 
   /**
+   * Función para manejar el cierre de sesión del usuario
+   * Limpia el estado de los libros en curso, tiempo de lectura y libro seleccionado
+   * También cierra la sesión del usuario llamando a la función initLogout
+   * @returns {void}
+   * @throws {Error} Si ocurre un error al cerrar sesión
+   * @example
+   * handleLogout();
+   */
+  const handleLogout = async () => {
+    try {
+      const response = await initLogout();
+      if (!response?.success) {
+        console.error("Error al cerrar sesión:", response?.message);
+      }
+      console.log("Cierre de sesión:", response.message);
+      onLogout();
+      setBooksReading([]);
+      setReadingTime(0);
+      setSelectedBook(null);
+      setTimerModalVisible(false);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
+  /**
    * Efecto para obtener el nombre del usuario
    * y actualizar el estado del nombre del usuario
    * Este efecto se ejecuta una sola vez cuando el componente se monta.
@@ -342,7 +369,7 @@ const HomeScreenMain = ({onLogout}) => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <Header title="Inicio" subtitle={subtitle} onLogout={onLogout} />
+        <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
         <ProgressSummary readingTime={readingTime} readingStats={readingStats} navigation={navigation}/>
         <ReadingTimerModal
           visible={timerModalVisible}
