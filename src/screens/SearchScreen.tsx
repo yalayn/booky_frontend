@@ -10,6 +10,8 @@ import Header from '../components/Header';
 
 
 const ModalShowDetails = ({modalVisible, selectedBook, handleAddToLibrary, setModalVisible}) => {
+  const [imageError, setImageError] = React.useState(false);
+  React.useEffect(() => { setImageError(false); }, [selectedBook]);
   return (
     <View>
       <Modal
@@ -30,12 +32,16 @@ const ModalShowDetails = ({modalVisible, selectedBook, handleAddToLibrary, setMo
                 </TouchableOpacity>
                 <View style={[styles.bookDetailsContainer]}>
                   <Image
-                    source={
-                      selectedBook.cover_url
-                        ? { uri: selectedBook.cover_url }
-                        : require('../assets/img/default_cover.jpg')
-                    }
-                    style={styles.bookCover}
+                  source={
+                    !imageError && selectedBook.cover_url
+                    ? { uri: selectedBook.cover_url }
+                    : require('../assets/img/default_cover.jpg')
+                  }
+                  style={styles.bookCover}
+                  onError={(e) => {
+                    console.log('Error al cargar la imagen:', e.nativeEvent.error);
+                    console.log('url', selectedBook.cover_url);
+                  }}
                   />
                   <Text style={[styles.modalSubtitle, { fontStyle: 'italic', fontSize: 14, marginBottom: 10 }]}> ISBN: {selectedBook.isbn} </Text>
                   <Text style={styles.modalTitle}>{selectedBook.title}</Text>
