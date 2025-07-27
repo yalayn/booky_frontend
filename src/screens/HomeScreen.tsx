@@ -283,7 +283,6 @@ const HomeScreenMain = ({onLogout}) => {
       if (!response?.success) {
         console.error("Error al cerrar sesión:", response?.message);
       }
-      console.log("Cierre de sesión:", response.message);
       onLogout();
       setBooksReading([]);
       setReadingTime(0);
@@ -291,6 +290,7 @@ const HomeScreenMain = ({onLogout}) => {
       setTimerModalVisible(false);
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
+      onLogout();
     }
   };
 
