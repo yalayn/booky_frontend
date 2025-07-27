@@ -7,17 +7,12 @@ export const getBooks = async () => {
 };
 
 export const addBook = async (jsonParams: any) => {
-  const response = await httpClient.post('userbook/add', jsonParams);
+  const response = await httpClient.post('/userbook/add', jsonParams);
   return response.data;
 };
 
 export const updateStateBook = async (jsonParams: any) => {
   const response = await httpClient.put('/userbook/update_state', jsonParams);
-  return response.data;
-};
-
-export const registerReviewBook = async (jsonParams: any) => {
-  const response = await httpClient.post('/userbook/register_review', jsonParams);
   return response.data;
 };
 
