@@ -19,26 +19,25 @@ const httpClient = axios.create({
 });
 
 // Interceptor para agregar el token a cada request
-// httpClient.interceptors.request.use(
-//   async (config) => {
-//     if (accessToken) {
-//       config.headers.Authorization = `Bearer ${accessToken}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+httpClient.interceptors.request.use(
+  async (config) => {
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 httpClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
     // Si el error es de autenticación, intenta refrescar el token
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // Aquí deberías implementar la lógica para refrescar el token
-        // Por ejemplo, llamando a un servicio de refresh token
         const refreshToken = await AsyncStorage.getItem('refreshToken');
         if (!refreshToken) {
           throw new Error('No se pudo obtener el refresh token');
