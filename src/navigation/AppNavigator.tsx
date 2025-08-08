@@ -11,6 +11,7 @@ import BookDetail from '../screens/BookDetail';
 import ReadingLogs from '../screens/ReadingLogs';
 import LoginScreen from '../screens/LoginScreen';
 import BottomMenu from '../components/BottomMenu';
+import UserGoalScreen from '../screens/UserGoalScreen';
 
 const Tab             = createBottomTabNavigator();
 const LibraryStack    = createNativeStackNavigator();
@@ -26,6 +27,7 @@ const HomeStackScreen = () => {
       />
       <HomeStack.Screen name="BookDetail" component={BookDetail} />
       <HomeStack.Screen name="ReadingLogs" component={ReadingLogs} />
+      <HomeStack.Screen name="UserGoalScreen" component={UserGoalScreen} />
     </HomeStack.Navigator>
   );
 };
