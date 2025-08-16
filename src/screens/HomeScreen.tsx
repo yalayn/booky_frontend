@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Image, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Image, Modal } from "react-native";
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Colors, CardStyles, SectionListStyles} from "../styles/AppStyles";
@@ -10,8 +10,170 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from "../components/Header";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getReadingSessionsToday, registerReadingSessions} from "../api/readingSessionService";
+import { registerUserGoal } from "../api/goalService";
 import { initLogout } from "../api/loginService";
+import { GOAL } from "../constants/appConstants";
+import { getUserGoal } from "../api/goalService";
+import StandarModal from "../components/StandarModal";
 
+/**
+ * Componente principal del rastreador de libros
+ * @returns 
+ */
+const HomeScreenMain = ({onLogout}) => {
+
+  const navigation = useNavigation();
+  const [readingTime, setReadingTime] = useState(0);
+  const [goalTime, setGoalTime]       = useState(0);
+  const [booksReading, setBooksReading] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [timerModalVisible, setTimerModalVisible] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userGoalModalVisible, setUserGoalModalVisible] = useState(false);
+  const [progressValue, setProgressValue]   = useState(0);
+
+  const handleRegisterTime = (book:any) => {
+    setSelectedBook(book);
+    setTimerModalVisible(true);
+  };
+
+  /**
+   * Acción que se ejecuta cuando el temporizador finaliza
+   * Registra la sesión de lectura y actualiza el tiempo de lectura
+   * @param seconds
+   * @returns 
+   */
+  const handleTimerFinish = (seconds:any) => {
+    if (!selectedBook ) {
+      console.error("No se ha seleccionado un libro.");
+      return;
+    }
+    registerReadingSessions({ book_id: selectedBook.book_id, seconds: seconds, }).
+    then(async () => {
+      const hours = seconds / 3600;
+      const goalSeconds = await AsyncStorage.getItem('goalSeconds') || '0';
+      setReadingTime((prev) => prev + seconds);
+      setProgressValue((seconds * 100) / parseInt(goalSeconds));
+    }).catch((error) => {
+      console.error("Error al registrar el tiempo de lectura:", error);
+    });
+  };
+
+  /**
+   * Función para manejar el cierre de sesión del usuario
+   * Limpia el estado de los libros en curso, tiempo de lectura y libro seleccionado
+   * También cierra la sesión del usuario llamando a la función initLogout
+   * @returns {void}
+   * @throws {Error} Si ocurre un error al cerrar sesión
+   * @example
+   * handleLogout();
+   */
+  const handleLogout = async () => {
+    try {
+      const response = await initLogout();
+      if (!response?.success) {
+        console.error("Error al cerrar sesión:", response?.message);
+      }
+      onLogout();
+      setBooksReading([]);
+      setReadingTime(0);
+      setSelectedBook(null);
+      setTimerModalVisible(false);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      onLogout();
+    }
+  };
+
+  /**
+   * Efecto para obtener el nombre del usuario
+   * y actualizar el estado del nombre del usuario
+   * Este efecto se ejecuta una sola vez cuando el componente se monta.
+   * @returns {void}
+   */
+  useEffect(() => {
+    const checkUserInfo = async () => {
+      const userInfo = await AsyncStorage.getItem('authUserInfo');
+      const userName = userInfo ? JSON.parse(userInfo).name : '';
+      setUserName(userName);
+    };
+    const fetchUserGoal = async () => {
+        const userGoal = await getUserGoal(GOAL.TYPE_TIME);
+        if (!userGoal) return;
+        const seconds = userGoal.target_value || 0;
+        await AsyncStorage.setItem('goalSeconds', JSON.stringify(seconds));
+    };
+    checkUserInfo();
+    fetchUserGoal();
+  }, []);
+
+  /**
+   * Efecto para obtener la lista de libros del usuario
+   * y actualizar la lista de libros en curso
+   * Este efecto se ejecuta cada vez que la pantalla gana el foco.
+   * Esto es útil para actualizar la lista de libros cada vez que el usuario regresa a la pantalla.
+   * @returns {void}
+   */
+  useFocusEffect(
+    React.useCallback(() => {
+
+      const fetchBooks = async () => {
+        try {
+          const listBooks = {};
+          const data = await getBooks();
+          Object.entries(data).forEach(([state, books]) => {
+            listBooks[state] = [];
+            books.forEach((book: any) => {
+              listBooks[state].push(book);
+            });
+          });
+          setBooksReading(listBooks["reading"]);
+        } catch (error) {
+          console.error('Error al obtener libros:', error);
+        }
+      };
+
+      const fetchUserCountDay = async () => {
+        try {
+            const dataUserCountDay = await getReadingSessionsToday();
+            if (!dataUserCountDay || !dataUserCountDay.data) {
+              setReadingTime(0);
+              return;
+            }
+            const seconds     = dataUserCountDay?.data?.seconds || 0;
+            const goalSeconds = await AsyncStorage.getItem('user_goal_seconds') || '0';
+            console.log("useFocusEffect - Goal seconds:", goalSeconds);
+            console.log("useFocusEffect - seconds:", seconds);
+            setGoalTime(parseInt(goalSeconds));
+            setProgressValue((seconds * 100) / parseInt(goalSeconds));
+            setReadingTime(parseInt(seconds));
+        } catch (error) {
+          console.error('Error al obtener el conteo diario del usuario:', error);
+        }
+      };
+
+      fetchBooks();
+      fetchUserCountDay();
+    }, [])
+  );
+
+  const subtitle = `Hola ${userName}, te damos la bienvenida.`;
+  return (
+    <View style={styles.container}>
+      <ScrollView>
+        <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
+        <ProgressSummary navigation={navigation} readingTime={readingTime} goalTime={goalTime} progressValue={progressValue} handleModalGoal={() => setUserGoalModalVisible(true)}/>
+        <ReadingTimerModal
+          visible={timerModalVisible}
+          onClose={() => setTimerModalVisible(false)}
+          onFinish={handleTimerFinish}
+          book={selectedBook}
+        />
+        <SectionBookList title="En curso" bookList={booksReading} onRegisterTime={handleRegisterTime} navigation={navigation}/>
+      </ScrollView>
+    </View>
+  );
+};
 
 /**
  * Componente para mostrar el progreso de lectura
@@ -31,18 +193,54 @@ const Progress = ({ value }) => {
  * @param param0
  * @returns
  */
-const ProgressSummary = ({readingTime,readingStats,navigation}) => {
-  const redingTimeFormatted = formatTime(readingTime);
+const ProgressSummary = ({navigation, readingTime, goalTime, progressValue, handleModalGoal}) => {
+  const readingTimeFormatted = formatReadingTime(readingTime);
+  const goalTimeFormatted    = formatReadingTime(goalTime);
+
+  let readingLabelToday = '';
+  if (readingTimeFormatted != "" && goalTimeFormatted != "") {
+    readingLabelToday = `${readingTimeFormatted} de ${goalTimeFormatted}`;
+  } else if (readingTimeFormatted != "") {
+    readingLabelToday = `${readingTimeFormatted}`;
+  } else if (goalTimeFormatted != "") {
+    readingLabelToday = `Meta: ${goalTimeFormatted}`;
+  } else {
+    readingLabelToday = 'Es hora de leer un libro!';
+  }
+
+  if(progressValue >= 100) {
+    readingLabelToday = '¡Felicidades! Has alcanzado tu meta de lectura.';
+  }
+  
   return (
       <Card style={CardStyles.cardSpacing}>
       <CardContent>
+        <TouchableOpacity style={styles.goalConfigButton} onPress={() => {
+            if (typeof navigation?.navigate === "function") {
+              navigation.navigate('UserGoalScreen');
+            }
+        }}>
+          <Icon name="trophy" size={18} style={styles.goalConfigButtonIcon} />
+        </TouchableOpacity>
         <Text style={CardStyles.title}>Progreso de lectura</Text>
-        <Text style={CardStyles.subtitle}>Lectura del dia: {redingTimeFormatted}</Text>
+        <Progress value={progressValue} />
+        {progressValue < 100 && (
+          <>
+            <Text style={[CardStyles.subtitle,{textAlign:'center'}]}>  Lectura hoy</Text>
+            <Text style={[CardStyles.subtitle,{textAlign:'center'}]}> {readingLabelToday}</Text>
+          </>
+        )}
+        {progressValue >= 100 && (
+          <>
+            <Text style={[CardStyles.subtitle,{textAlign:'center'}]}>¡Felicidades! Has alcanzado tu meta de lectura.</Text>
+            <Icon name="smile-o" size={24} color="#403E3B" style={{ alignSelf: 'center', marginVertical: 10 }} />
+            <Text style={[CardStyles.subtitle,{textAlign:'center'}]}>{readingTimeFormatted}.</Text>
+          </>
+        )}
+
         <TouchableOpacity
           style={CardStyles.logButton}
           onPress={() => {
-            // Navegar a la pantalla de registros de lectura
-            // Asegúrate de tener la ruta 'ReadingLogs' en tu navegación
             if (typeof navigation?.navigate === "function") {
               navigation.navigate('ReadingLogs');
             }
@@ -56,19 +254,37 @@ const ProgressSummary = ({readingTime,readingStats,navigation}) => {
   );
 }
 
+const registerGoal = async (goal) => {
+  try {
+    const response = await registerUserGoal(goal);
+    if (response.success) {
+      console.log('Meta registrada exitosamente:', response.data);
+    } else {
+      console.error('Error al registrar la meta:', response.message);
+    }
+  } catch (error) {
+    console.error('Error al registrar la meta:', error);
+  }
+}
+
 /**
  * Formatea el tiempo de lectura en horas, minutos y segundos
  * @param readingTime 
  * @returns 
  */
-const formatTime = (readingTime: number) => {
-  if (readingTime < 0 || isNaN(readingTime)) {
-    return "00:00:00";
+const formatReadingTime = (readingTimeSeconds: number) => {
+  if (readingTimeSeconds <= 0 || isNaN(readingTimeSeconds)) {
+    return "";
   }
-  const hours   = Math.floor(readingTime).toString().padStart(2, "0");
-  const minutes = Math.floor((readingTime % 1) * 60).toString().padStart(2, "0");
-  const seconds = Math.round((((readingTime % 1) * 60) % 1) * 60).toString().padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
+  const hours   = Math.floor(readingTimeSeconds / 3600);
+  const minutes = Math.floor((readingTimeSeconds % 3600) / 60);
+  const seconds = Math.round((readingTimeSeconds % 60));
+
+  const hours_label   = (hours > 0) ? `${hours.toString().padStart(2, "0")} hrs` : '';
+  const minutes_label = (minutes > 0) ? `${minutes.toString().padStart(2, "0")} min` : '';
+  const seconds_label = (minutes <= 0 && seconds > 0) ? `${seconds.toString().padStart(2, "0")} seg` : '';
+
+  return `${hours_label} ${minutes_label} ${seconds_label}`.trim();
 }
 
 /**
@@ -220,169 +436,6 @@ const ReadingTimerModal = ({ visible, onClose, onFinish, book }) => {
   );
 };
 
-/**
- * Componente principal del rastreador de libros
- * @returns 
- */
-const HomeScreenMain = ({onLogout}) => {
-
-  const navigation = useNavigation();
-  const [readingTime, setReadingTime]   = useState(0);
-  const [booksReading, setBooksReading] = useState([]);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [timerModalVisible, setTimerModalVisible] = useState(false);
-  const [userName, setUserName] = useState('');
-
-  const readingStats = [
-    { day: "Lun", hours: 1 },
-    { day: "Mar", hours: 2 },
-    { day: "Mié", hours: 1.5 },
-    { day: "Jue", hours: 2 },
-    { day: "Vie", hours: 3 },
-  ];
-
-  const handleRegisterTime = (book:any) => {
-    setSelectedBook(book);
-    setTimerModalVisible(true);
-  };
-
-  /**
-   * Acción que se ejecuta cuando el temporizador finaliza
-   * Registra la sesión de lectura y actualiza el tiempo de lectura
-   * @param seconds
-   * @returns 
-   */
-  const handleTimerFinish = (seconds:any) => {
-    if (!selectedBook ) {
-      console.error("No se ha seleccionado un libro.");
-      return;
-    }
-    registerReadingSessions({
-      book_id: selectedBook.book_id,
-      seconds: seconds,
-    }).then(() => {
-      const hours = seconds / 3600;
-      setReadingTime((prev) => prev + hours);
-    }).catch((error) => {
-      console.error("Error al registrar el tiempo de lectura:", error);
-    });
-  };
-
-  /**
-   * Función para manejar el cierre de sesión del usuario
-   * Limpia el estado de los libros en curso, tiempo de lectura y libro seleccionado
-   * También cierra la sesión del usuario llamando a la función initLogout
-   * @returns {void}
-   * @throws {Error} Si ocurre un error al cerrar sesión
-   * @example
-   * handleLogout();
-   */
-  const handleLogout = async () => {
-    try {
-      const response = await initLogout();
-      if (!response?.success) {
-        console.error("Error al cerrar sesión:", response?.message);
-      }
-      onLogout();
-      setBooksReading([]);
-      setReadingTime(0);
-      setSelectedBook(null);
-      setTimerModalVisible(false);
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      onLogout();
-    }
-  };
-
-  /**
-   * Efecto para obtener el nombre del usuario
-   * y actualizar el estado del nombre del usuario
-   * Este efecto se ejecuta una sola vez cuando el componente se monta.
-   * @returns {void}
-   */
-  useEffect(() => {
-    const checkUserInfo = async () => {
-      const userInfo = await AsyncStorage.getItem('authUserInfo');
-      const userName = userInfo ? JSON.parse(userInfo).name : '';
-      setUserName(userName);
-    };
-    checkUserInfo();
-  }, []);
-
-  /**
-   * Efecto para obtener la lista de libros del usuario
-   * y actualizar la lista de libros en curso
-   * Este efecto se ejecuta cada vez que la pantalla gana el foco.
-   * Esto es útil para actualizar la lista de libros cada vez que el usuario regresa a la pantalla.
-   * @returns {void}
-   */
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchBooks = async () => {
-        try {
-          const listBooks = {};
-          const data = await getBooks();
-          Object.entries(data).forEach(([state, books]) => {
-            listBooks[state] = [];
-            books.forEach((book: any) => {
-              listBooks[state].push(book);
-            });
-          });
-          setBooksReading(listBooks["reading"]);
-        } catch (error) {
-          console.error('Error al obtener libros:', error);
-        }
-      };
-    
-      fetchBooks();
-    }, [])
-  );
-
-  /**
-   * Efecto para obtener el conteo diario de lectura del usuario
-   * y actualizar el tiempo de lectura
-   * Este efecto se ejecuta cada vez que la pantalla gana el foco.
-   * Esto es útil para actualizar el tiempo de lectura cada vez que el usuario regresa a la pantalla.
-   * @returns {void}
-   */
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchUserCountDay = async () => {
-        try {
-            const dataUserCountDay = await getReadingSessionsToday();
-            if (!dataUserCountDay || !dataUserCountDay.data) {
-              setReadingTime(0);
-              return;
-            }
-            const seconds = dataUserCountDay?.data?.seconds;
-            const hours = seconds / 3600 || 0; // Convertir segundos a horas
-            setReadingTime(hours);
-        } catch (error) {
-          console.error('Error al obtener el conteo diario del usuario:', error);
-        }
-      };
-      fetchUserCountDay();
-    }, [])
-  );
-
-  const subtitle = `Hola ${userName}, te damos la bienvenida.`;
-  return (
-    <View style={styles.container}>
-      <ScrollView>
-        <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
-        <ProgressSummary readingTime={readingTime} readingStats={readingStats} navigation={navigation}/>
-        <ReadingTimerModal
-          visible={timerModalVisible}
-          onClose={() => setTimerModalVisible(false)}
-          onFinish={handleTimerFinish}
-          book={selectedBook}
-        />
-        <SectionBookList title="En curso" bookList={booksReading} onRegisterTime={handleRegisterTime} navigation={navigation}/>
-      </ScrollView>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -406,6 +459,25 @@ const styles = StyleSheet.create({
   navButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  goalConfigButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    backgroundColor: '#fff',
+    marginTop: 0,
+    borderRadius: 8,
+    borderColor: "#ccc",
+    width: 36,
+    height: 36,
+    borderWidth: 1,
+    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  goalConfigButtonIcon: {
+    color: '#666',
   },
 });
 
@@ -505,56 +577,6 @@ const CardHomeStyles = StyleSheet.create({
   logButtonText: {
     color: "white",
     marginLeft: 8,
-    fontWeight: "bold",
-  },
-});
-
-const timerStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    width: "80%",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  timer: {
-    fontSize: 48,
-    fontWeight: "bold",
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: Colors.darker,
-    padding: 10,
-    borderRadius: 8,
-    marginHorizontal: 6,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontWeight: "bold",
-  },
-  closeButton: {
-    marginTop: 8,
-    padding: 8,
-  },
-  closeButtonText: {
-    color: Colors.darker,
     fontWeight: "bold",
   },
 });
