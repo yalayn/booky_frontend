@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { Colors, CardStyles } from "../styles/AppStyles";
 import { Card, CardContent } from '../components/Card';
 import Icon from "react-native-vector-icons/FontAwesome";
 import StandarModal from '../components/StandarModal';
 import StylesModal from "../styles/StylesModal";
-import { MoveRight } from 'lucide-react-native';
+import { GOAL } from '../constants/appConstants';
+import { getUserGoal, registerUserGoal } from '../api/goalService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UserGoalScreen = ({navigation}) => {
     const [modalEditLogVisible, setModalEditLogVisible] = useState(false);
@@ -16,17 +19,49 @@ const UserGoalScreen = ({navigation}) => {
 
     useEffect(() => {
         const fetchUserGoal = async () => {
-            const userGoal = await getUserGoal();
-            setEditHours(userGoal.hours);
-            setEditMinutes(userGoal.minutes);
-            setEditSeconds(userGoal.seconds);
+            const userGoal = await getUserGoal(GOAL.TYPE_TIME);
+            if (!userGoal) return;
+            const seconds = userGoal.target_value || 0;
+            const hours = Math.floor(seconds / 3600).toString().padStart(2, "0");
+            const mins  = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+            const secs  = (seconds % 60).toString().padStart(2, "0");
+            setEditHours(hours);
+            setEditMinutes(mins);
+            setEditSeconds(secs);
         };
-    fetchUserGoal();
-  }, []);
+        fetchUserGoal();
+    }, []);
 
   const onEditBook = () => {
-    // Aquí puedes manejar la edición del libro
-    console.log('Editando libro:', selectedData);
+    const seconds = parseInt(editHours, 10) * 3600 + parseInt(editMinutes, 10) * 60 + parseInt(editSeconds, 10);
+    const jsonParams = { type: GOAL.TYPE_TIME, target_value: seconds };
+    registerUserGoal(jsonParams)
+    .then(async response => {
+        if (!response.success) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'No se pudo actualizar la meta',
+            });
+            return;
+        }
+        Toast.show({
+            type: 'success',
+            text1: 'Meta actualizada',
+            text2: 'El estado de la meta se actualizó correctamente.',
+        });
+        await AsyncStorage.setItem('user_goal_seconds', seconds.toString());
+        console.log('usergoalscreen - user_goal_seconds storage',await AsyncStorage.getItem('user_goal_seconds'));
+        setModalEditLogVisible(false);
+      })
+      .catch(error => {
+        console.error('Error al registrar la meta de usuario:', error);
+        Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'No se pudo actualizar la meta',
+        });
+      });
   };
 
   return (
@@ -42,7 +77,7 @@ const UserGoalScreen = ({navigation}) => {
                 <Text style={styles.simple}>Podras establecer un tiempo de lectura diario.</Text>
                 <Icon name="clock-o" size={36} color={Colors.white} style={{position: "absolute", right: 0, top: 0}}/>
                 <View style={{marginTop: 15, flexDirection: 'row', alignItems: 'center'}}>
-                    <Text style={{color: Colors.white, marginLeft: 0, fontSize: 18}}>{`${editHours}:${editMinutes}:${editSeconds}`}</Text>
+                    <Text style={{color: Colors.white, marginLeft: 0, fontSize: 18}}>{`${editHours.padStart(2, '0')}:${editMinutes.padStart(2, '0')}:${editSeconds.padStart(2, '0')}`}</Text>
                     <View style={{ flex: 1, alignItems: 'flex-end' }}>
                         <TouchableOpacity style={styles.singleButton} onPress={() => { setModalEditLogVisible(true) }} >
                             <Text style={styles.singleButtonText}>Registrar</Text>
@@ -74,7 +109,7 @@ const UserGoalScreen = ({navigation}) => {
  * @returns 
  */
 const EditModal = (props) => {
-    const { onVisible, onClose, onSave, selectedLog, setSelectedLog, editHours, setEditHours, editMinutes, setEditMinutes, editSeconds, setEditSeconds } = props;
+    const { onVisible, onClose, onSave, selectedData, setSelectedData, editHours, setEditHours, editMinutes, setEditMinutes, editSeconds, setEditSeconds } = props;
     return (
         <StandarModal onVisible={onVisible} onClose={onClose} >
             <View style={{marginTop: 40, alignItems: 'center'}}>
@@ -88,15 +123,8 @@ const EditModal = (props) => {
                             keyboardType="numeric"
                             maxLength={2}
                             value={editHours}
-                            onChangeText={h => {
-                                setEditHours(h.replace(/[^0-9]/g, ''));
-                                if (!selectedLog) return;
-                                const hours = parseInt(h) || 0;
-                                const minutes = parseInt(editMinutes) || 0;
-                                const seconds = parseInt(editSeconds) || 0;
-                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                            }}
-                            placeholder={selectedLog ? Math.floor(selectedLog.seconds / 3600).toString().padStart(2, '0') : '00'}
+                            onChangeText={h => { setEditHours(h.replace(/[^0-9]/g, '')); }}
+                            placeholder={selectedData ? Math.floor(selectedData.seconds / 3600).toString().padStart(2, '0') : '00'}
                             placeholderTextColor={Colors.tertiary}
                         />
                         <TextInput
@@ -104,15 +132,8 @@ const EditModal = (props) => {
                             keyboardType="numeric"
                             maxLength={2}
                             value={editMinutes}
-                            onChangeText={m => {
-                                setEditMinutes(m.replace(/[^0-9]/g, ''));
-                                if (!selectedLog) return;
-                                const hours = parseInt(editHours) || 0;
-                                const minutes = parseInt(m) || 0;
-                                const seconds = parseInt(editSeconds) || 0;
-                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                            }}
-                            placeholder={selectedLog ? Math.floor((selectedLog.seconds % 3600) / 60).toString().padStart(2, '0') : '00'}
+                            onChangeText={m => { setEditMinutes(m.replace(/[^0-9]/g, '')); }}
+                            placeholder={selectedData ? Math.floor((selectedData.seconds % 3600) / 60).toString().padStart(2, '0') : '00'}
                             placeholderTextColor={Colors.tertiary}
                         />
                         <TextInput
@@ -120,15 +141,8 @@ const EditModal = (props) => {
                             keyboardType="numeric"
                             maxLength={2}
                             value={editSeconds}
-                            onChangeText={s => {
-                                setEditSeconds(s.replace(/[^0-9]/g, ''));
-                                if (!selectedLog) return;
-                                const hours = parseInt(editHours) || 0;
-                                const minutes = parseInt(editMinutes) || 0;
-                                const seconds = parseInt(s) || 0;
-                                setSelectedLog({ ...selectedLog, seconds: hours * 3600 + minutes * 60 + seconds });
-                            }}
-                            placeholder={selectedLog ? (selectedLog.seconds % 60).toString().padStart(2, '0') : '00'}
+                            onChangeText={s => { setEditSeconds(s.replace(/[^0-9]/g, '')); }}
+                            placeholder={selectedData ? (selectedData.seconds % 60).toString().padStart(2, '0') : '00'}
                             placeholderTextColor={Colors.tertiary}
                         />
                     </View>
