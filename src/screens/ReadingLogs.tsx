@@ -35,7 +35,6 @@ const ReadingLogs = ({ navigation }) => {
         try {
             // Puedes usar tu endpoint real para historial de sesiones
             const response = await getReadingSessionsHistory();
-            console.log("Registros de lectura obtenidos:", response.data);
             setLogs(response?.data || []);
         } catch (error) {
             console.error("Error al obtener registros de lectura:", error);
@@ -108,8 +107,6 @@ const ReadingLogs = ({ navigation }) => {
     };
 
     const onAddBookLog = () => {
-
-        console.log("onAddBookLog", addDate, addHours, addMinutes, addSeconds, addBookId);
         const SECOND_TODAY = 86400; // 24 horas en segundos
         let message = "";
         const second = (parseInt(addHours) || 0) * 3600 + (parseInt(addMinutes) || 0) * 60 + (parseInt(addSeconds) || 0);
