@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Image, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from "react-native";
+import Toast from 'react-native-toast-message';
 import { getBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Colors, CardStyles, SectionListStyles} from "../styles/AppStyles";
@@ -10,11 +11,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from "../components/Header";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getReadingSessionsToday, registerReadingSessions} from "../api/readingSessionService";
-import { registerUserGoal } from "../api/goalService";
 import { initLogout } from "../api/loginService";
 import { GOAL } from "../constants/appConstants";
 import { getUserGoal } from "../api/goalService";
-import StandarModal from "../components/StandarModal";
+import Loading from "../components/Loading";
 
 /**
  * Componente principal del rastreador de libros
@@ -31,6 +31,7 @@ const HomeScreenMain = ({onLogout}) => {
   const [userName, setUserName] = useState('');
   const [userGoalModalVisible, setUserGoalModalVisible] = useState(false);
   const [progressValue, setProgressValue]   = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const handleRegisterTime = (book:any) => {
     setSelectedBook(book);
@@ -43,20 +44,29 @@ const HomeScreenMain = ({onLogout}) => {
    * @param seconds
    * @returns 
    */
-  const handleTimerFinish = (seconds:any) => {
+  const handleTimerFinish = async(seconds:any) => {
     if (!selectedBook ) {
       console.error("No se ha seleccionado un libro.");
       return;
     }
-    registerReadingSessions({ book_id: selectedBook.book_id, seconds: seconds, }).
-    then(async () => {
-      const hours = seconds / 3600;
+    setLoading(true);
+    try {
+      const response = await registerReadingSessions({ book_id: selectedBook.book_id, seconds: seconds });
+      if (!response?.success) {
+        console.error("Error al registrar la sesión de lectura:", response?.message);
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Ha ocurrido un error al registrar la sesión de lectura.', });
+        setLoading(false);
+        return;
+      }
       const goalSeconds = await AsyncStorage.getItem('goalSeconds') || '0';
       setReadingTime((prev) => prev + seconds);
       setProgressValue((seconds * 100) / parseInt(goalSeconds));
-    }).catch((error) => {
-      console.error("Error al registrar el tiempo de lectura:", error);
-    });
+    } catch (error) {
+      console.error("Error al registrar la sesión de lectura:", error);
+    } finally {
+      setTimerModalVisible(false);
+      setLoading(false);
+    }
   };
 
   /**
@@ -142,8 +152,6 @@ const HomeScreenMain = ({onLogout}) => {
             }
             const seconds     = dataUserCountDay?.data?.seconds || 0;
             const goalSeconds = await AsyncStorage.getItem('user_goal_seconds') || '0';
-            console.log("useFocusEffect - Goal seconds:", goalSeconds);
-            console.log("useFocusEffect - seconds:", seconds);
             setGoalTime(parseInt(goalSeconds));
             setProgressValue((seconds * 100) / parseInt(goalSeconds));
             setReadingTime(parseInt(seconds));
@@ -160,6 +168,9 @@ const HomeScreenMain = ({onLogout}) => {
   const subtitle = `Hola ${userName}, te damos la bienvenida.`;
   return (
     <View style={styles.container}>
+      {/* Bloqueo de pantalla con spinner */}
+      {loading && (<Loading />)}
+      {/* Botón para regresar */}
       <ScrollView>
         <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
         <ProgressSummary navigation={navigation} readingTime={readingTime} goalTime={goalTime} progressValue={progressValue} handleModalGoal={() => setUserGoalModalVisible(true)}/>
@@ -252,19 +263,6 @@ const ProgressSummary = ({navigation, readingTime, goalTime, progressValue, hand
       </CardContent>
     </Card>
   );
-}
-
-const registerGoal = async (goal) => {
-  try {
-    const response = await registerUserGoal(goal);
-    if (response.success) {
-      console.log('Meta registrada exitosamente:', response.data);
-    } else {
-      console.error('Error al registrar la meta:', response.message);
-    }
-  } catch (error) {
-    console.error('Error al registrar la meta:', error);
-  }
 }
 
 /**
