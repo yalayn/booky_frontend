@@ -9,6 +9,7 @@ import StylesModal from "../styles/StylesModal";
 import { GOAL } from '../constants/appConstants';
 import { getUserGoal, registerUserGoal } from '../api/goalService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Loading from '../components/Loading';
 
 const UserGoalScreen = ({navigation}) => {
     const [modalEditLogVisible, setModalEditLogVisible] = useState(false);
@@ -16,6 +17,7 @@ const UserGoalScreen = ({navigation}) => {
     const [editMinutes, setEditMinutes]   = useState('00');
     const [editSeconds, setEditSeconds]   = useState('00');
     const [selectedData, setSelectedData] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchUserGoal = async () => {
@@ -32,73 +34,66 @@ const UserGoalScreen = ({navigation}) => {
         fetchUserGoal();
     }, []);
 
-  const onEditBook = () => {
+  const onEditBook = async () => {
+    setLoading(true);
     const seconds = parseInt(editHours, 10) * 3600 + parseInt(editMinutes, 10) * 60 + parseInt(editSeconds, 10);
     const jsonParams = { type: GOAL.TYPE_TIME, target_value: seconds };
-    registerUserGoal(jsonParams)
-    .then(async response => {
-        if (!response.success) {
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'No se pudo actualizar la meta',
-            });
-            return;
-        }
-        Toast.show({
-            type: 'success',
-            text1: 'Meta actualizada',
-            text2: 'El estado de la meta se actualizó correctamente.',
-        });
-        await AsyncStorage.setItem('user_goal_seconds', seconds.toString());
-        console.log('usergoalscreen - user_goal_seconds storage',await AsyncStorage.getItem('user_goal_seconds'));
-        setModalEditLogVisible(false);
-      })
-      .catch(error => {
-        console.error('Error al registrar la meta de usuario:', error);
-        Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'No se pudo actualizar la meta',
-        });
-      });
+    try {
+      const response = await registerUserGoal(jsonParams);
+      if (!response.success) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo actualizar la meta', });
+        setLoading(false);
+        return;
+      }
+      Toast.show({ type: 'success', text1: 'Meta actualizada', text2: 'El estado de la meta se actualizó correctamente.', });
+      await AsyncStorage.setItem('user_goal_seconds', seconds.toString());
+      console.log('usergoalscreen - user_goal_seconds storage', await AsyncStorage.getItem('user_goal_seconds'));
+      setModalEditLogVisible(false);
+    } catch (error) {
+      console.error('Error al registrar la meta de usuario:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo actualizar la meta', });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-        {/* Botón para regresar */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Icon name="close" size={20} color={Colors.white} />
-        </TouchableOpacity>        
-        <View style={styles.header}><Text style={styles.title}>Metas de lectura</Text></View>
-        <Card style={CardStyles.cardSpacing}>
-            <CardContent>
-                <Text style={styles.subtitles}>Define un tiempo de lectura</Text>
-                <Text style={styles.simple}>Podras establecer un tiempo de lectura diario.</Text>
-                <Icon name="clock-o" size={36} color={Colors.white} style={{position: "absolute", right: 0, top: 0}}/>
-                <View style={{marginTop: 15, flexDirection: 'row', alignItems: 'center'}}>
-                    <Text style={{color: Colors.white, marginLeft: 0, fontSize: 18}}>{`${editHours.padStart(2, '0')}:${editMinutes.padStart(2, '0')}:${editSeconds.padStart(2, '0')}`}</Text>
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                        <TouchableOpacity style={styles.singleButton} onPress={() => { setModalEditLogVisible(true) }} >
-                            <Text style={styles.singleButtonText}>Registrar</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </CardContent>
-        </Card>
-        <EditModal 
-            onVisible       = {modalEditLogVisible} 
-            onClose         = {() => setModalEditLogVisible(false)}
-            onSave          = {() => onEditBook()}
-            selectedData    = {selectedData}
-            setSelectedData = {setSelectedData}
-            editHours       = {editHours}
-            setEditHours    = {setEditHours}
-            editMinutes     = {editMinutes}
-            setEditMinutes  = {setEditMinutes}
-            editSeconds     = {editSeconds}
-            setEditSeconds  = {setEditSeconds}
-        />
+      {/* Bloqueo de pantalla con spinner */}
+      {loading && (<Loading />)}
+      {/* Botón para regresar */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Icon name="close" size={20} color={Colors.white} />
+      </TouchableOpacity>
+      <View style={styles.header}><Text style={styles.title}>Metas de lectura</Text></View>
+      <Card style={CardStyles.cardSpacing}>
+        <CardContent>
+          <Text style={styles.subtitles}>Define un tiempo de lectura</Text>
+          <Text style={styles.simple}>Podras establecer un tiempo de lectura diario.</Text>
+          <Icon name="clock-o" size={36} color={Colors.white} style={{position: "absolute", right: 0, top: 0}}/>
+          <View style={{marginTop: 15, flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={{color: Colors.white, marginLeft: 0, fontSize: 18}}>{`${editHours.padStart(2, '0')}:${editMinutes.padStart(2, '0')}:${editSeconds.padStart(2, '0')}`}</Text>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <TouchableOpacity style={styles.singleButton} onPress={() => { setModalEditLogVisible(true) }} >
+                <Text style={styles.singleButtonText}>Registrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </CardContent>
+      </Card>
+      <EditModal 
+        onVisible       = {modalEditLogVisible} 
+        onClose         = {() => setModalEditLogVisible(false)}
+        onSave          = {() => onEditBook()}
+        selectedData    = {selectedData}
+        setSelectedData = {setSelectedData}
+        editHours       = {editHours}
+        setEditHours    = {setEditHours}
+        editMinutes     = {editMinutes}
+        setEditMinutes  = {setEditMinutes}
+        editSeconds     = {editSeconds}
+        setEditSeconds  = {setEditSeconds}
+      />
     </View>
   );
 };
