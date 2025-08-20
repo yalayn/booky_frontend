@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TextInput, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, ToastAndroid, Platform, Alert } from "react-native";
+import Toast from 'react-native-toast-message';
 import { getReadingSessionsHistory, registerReadingSessions, updateReadingSessions, deleteReadingSessions  } from "../api/readingSessionService";
 import { getBooks } from "../api/bookService";
 import { Colors } from "../styles/AppStyles";
 import { Swipeable } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ToastAndroid, Platform, Alert } from "react-native";
 import StandarModal from "../components/StandarModal";
 import StylesModal from "../styles/StylesModal";
 import Icon from "react-native-vector-icons/FontAwesome";
+import Loading from "../components/Loading";
 
 const ReadingLogs = ({ navigation }) => {
     const [logs, setLogs]               = useState([]);
@@ -106,7 +107,7 @@ const ReadingLogs = ({ navigation }) => {
         setModalDeleteLogVisible(true);
     };
 
-    const onAddBookLog = () => {
+    const onAddBookLog = async () => {
         const SECOND_TODAY = 86400; // 24 horas en segundos
         let message = "";
         const second = (parseInt(addHours) || 0) * 3600 + (parseInt(addMinutes) || 0) * 60 + (parseInt(addSeconds) || 0);
@@ -135,43 +136,41 @@ const ReadingLogs = ({ navigation }) => {
             }
             return;
         }
-        const newLog = {
-            date: addDate,
-            book_id: addBookId,
-            seconds: second
-        };
-
-        registerReadingSessions(newLog).then(() => {
-            setLogs(prevLogs => [...prevLogs, { ...newLog, _id: Date.now().toString(), book_title: addBookTitle }]);
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Registro agregado con éxito", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Éxito", "Registro agregado con éxito");
+        const newLog = { date: addDate, book_id: addBookId, seconds: second };
+        try{
+            setLoading(true);
+            const response = await registerReadingSessions(newLog);
+            if (!response.success) {
+                Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo agregar el registro', });
+                console.error('Error al agregar el registro:', response.message);
+                return;
             }
+            const newLogData = response.data;
+            setLogs(prevLogs => [...prevLogs, { ...newLog, _id: newLogData._id, book_title: newLogData.book_title }]);
+            console.log('Registro agregado:', newLogData);
+            console.log('nuevo logs:', logs);
+            Toast.show({ type: 'success', text1: 'Éxito', text2: 'Registro agregado correctamente.', });
             setModalAddLogVisible(false);
-            // Resetea los campos del modal
             setAddDate(new Date().toISOString().split('T')[0]);
             setAddHours('');
             setAddMinutes('');
             setAddSeconds('');
             setAddBookId(null);
             setAddBookTitle('');
-        }).catch((error) => {
-            console.error('Error al agregar el registro:', error);
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Error al agregar el registro", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Error", "No se pudo agregar el registro");
-            }
-        });
-        
+
+        } catch (error) {
+            Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo crear el registro', });
+            return;
+        } finally {
+            setLoading(false);
+        }
     };
 
     /**
      * Actualiza un registro de lectura.
      * @returns 
      */
-    const onEditBook = () => {
+    const onEditBook = async () => {
 
         const SECOND_TODAY = 86400; // 24 horas en segundos
 
@@ -188,7 +187,6 @@ const ReadingLogs = ({ navigation }) => {
              message = "No se puede actualizar el registro";
         }
 
-        
         const second = (parseInt(editHours) || 0) * 3600 + (parseInt(editMinutes) || 0) * 60 + (parseInt(editSeconds) || 0);
         
         if (second > SECOND_TODAY) {
@@ -210,67 +208,71 @@ const ReadingLogs = ({ navigation }) => {
             book_id   : selectedLog?.book_id,
             seconds   : second
         };
-
-        updateReadingSessions(updatedLog)
-        .then(response => {
-
+        setLoading(true);
+        try {
+            const response = await updateReadingSessions(updatedLog);
             if (!response.success) {
-                if (Platform.OS === "android") {
-                    ToastAndroid.show(response.message || 'No se pudo actualizar el registro', ToastAndroid.SHORT);
-                } else {
-                    Alert.alert("Error", response.message || 'No se pudo actualizar el registro');
-                }
+                Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo actualizar el registro', });
+                setSelectedLog(null);
+                setLoading(false);
                 return;
             }
-
             selectedLog['seconds'] = second;
             setLogs(prevLogs => prevLogs.map(log => log._id === selectedLog._id ? selectedLog : log));
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Registro actualizado con éxito", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Éxito", "Registro actualizado con éxito");
-            }
+            Toast.show({ type: 'success', text1: 'Éxito', text2: 'Registro actualizado correctamente.', });
             setSelectedLog(null);
             setModalEditLogVisible(false);
-        }
-        )
-        .catch(error => {
+        } catch (error) {
             console.error('Error al actualizar el registro:', error);
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Error al actualizar el registro", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Error", "No se pudo actualizar el registro");
-            }
+            Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo actualizar el registro', });
+        } finally {
+            setLoading(false);
         }
-        );
     };
 
     /**
      * Elimina un registro de lectura.
      * @param selectedLog 
      */
-    const onDeleteBook = (selectedLog) => {
+    const onDeleteBook = async (selectedLog) => {
         if (!selectedLog) return;
         setSelectedLog(null);
         setModalDeleteLogVisible(false);
-
-        deleteReadingSessions(selectedLog._id)
-        .then(response => {
+        setLoading(true);
+        try{
+            console.log("onDeleteBook - Response:", selectedLog._id);
+            const response = await deleteReadingSessions(selectedLog._id);
+            if (!response.success) {
+                Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo eliminar el registro', });
+                setLoading(false);
+                return;
+            }
             setLogs(prevLogs => prevLogs.filter(log => log?._id !== selectedLog?._id));
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Registro eliminado con éxito", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Éxito", "Registro eliminado con éxito");
-            }
-        })
-        .catch(error => {
+            Toast.show({ type: 'success', text1: 'Éxito', text2: 'Registro eliminado correctamente.', });
+        } catch (error) {
             console.error('Error al eliminar el registro:', error);
-            if (Platform.OS === "android") {
-                ToastAndroid.show("Error al eliminar el registro", ToastAndroid.SHORT);
-            } else {
-                Alert.alert("Error", "No se pudo eliminar el registro");
-            }
-        });
+            Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo eliminar el registro', });
+        } finally {
+            setLoading(false);
+        }
+
+        // deleteReadingSessions(selectedLog._id)
+        // .then(response => {
+        //     setLogs(prevLogs => prevLogs.filter(log => log?._id !== selectedLog?._id));
+        //     if (Platform.OS === "android") {
+        //         ToastAndroid.show("Registro eliminado con éxito", ToastAndroid.SHORT);
+        //     } else {
+        //         Alert.alert("Éxito", "Registro eliminado con éxito");
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Error al eliminar el registro:', error);
+        //     if (Platform.OS === "android") {
+        //         ToastAndroid.show("Error al eliminar el registro", ToastAndroid.SHORT);
+        //     } else {
+        //         Alert.alert("Error", "No se pudo eliminar el registro");
+        //     }
+        // });
     };
 
     /**
@@ -288,6 +290,8 @@ const ReadingLogs = ({ navigation }) => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <View style={styles.container}>
+                {/* Bloqueo de pantalla con spinner */}
+                {loading && (<Loading />)}
                 {/* Botón para regresar */}
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Icon name="close" size={20} color={Colors.white} />
@@ -314,9 +318,6 @@ const ReadingLogs = ({ navigation }) => {
                     </View>
             
                 </View>
-                { loading && (
-                    <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
-                )}
                 {logs.length === 0 && !loading &&
                     <Text style={styles.emptyText}>No hay registros de lectura.</Text>
                 }
