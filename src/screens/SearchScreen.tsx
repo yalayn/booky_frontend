@@ -51,7 +51,6 @@ const SearchScreen = () => {
   };
 
   const handleAddToLibrary = () => {
-    console.log('Agregando libro a la biblioteca:', selectedBook);
     addBook(selectedBook)
     .then(() => {
         Alert.alert('Listo. \n Libro agregado a tu biblioteca.');
