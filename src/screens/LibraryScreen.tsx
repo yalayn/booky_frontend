@@ -9,6 +9,50 @@ import StylesModal from "../styles/StylesModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../components/Header';
 
+const LibraryScreen = () => {
+  const [listBooks, setlistBooks] = useState([]);
+  const [bookState, setBookState] = useState('all'); // Estado inicial del filtro
+
+  const handleStateChange = (newState: any) => {
+      setBookState(newState); // Actualiza el estado del filtro
+  };
+
+  useFocusEffect(
+      React.useCallback(() => {
+        const fetchBooks = async () => {
+            try {
+            const listBooks_ = [];
+            const data = await getBooks();
+            Object.entries(data).forEach(([state, books]) => {
+                books.forEach((book: any) => {
+                    listBooks_.push(book);
+                });
+            });
+            setlistBooks(listBooks_);
+            } catch (error) {
+            console.error('Error al obtener libros:', error);
+            }
+        };
+
+        fetchBooks();
+    }, [])
+  );
+
+  return (
+    <View style={styles.container}>
+      <ScrollView>
+        <Header 
+          title="Biblioteca"
+          subtitle="Aquí puedes ver tus libros."
+          onLogout={null}
+        />
+        <LabelStateFilter bookState={bookState} onStateChange={handleStateChange}></LabelStateFilter>
+        <SectionBookList title="" bookList={listBooks}/>
+      </ScrollView>
+    </View>
+  );
+};
+
 const SectionBookList = ({ title, bookList }) => {
     return (
         <SectionList style={SectionListStyles.cardSpacing}>
@@ -156,99 +200,6 @@ const LabelStateFilter = ({ bookState, onStateChange }) => {
   );
 };
 
-const LibraryScreen = () => {
-
-    const navigation = useNavigation();
-    const [listBooks, setlistBooks] = useState([]);
-    const [bookState, setBookState] = useState('all'); // Estado inicial del filtro
-
-    const handleStateChange = (newState: any) => {
-        setBookState(newState); // Actualiza el estado del filtro
-    };
-    
-    useFocusEffect(
-        React.useCallback(() => {
-          const fetchBooks = async () => {
-              try {
-              const listBooks_ = [];
-              const data = await getBooks();
-              Object.entries(data).forEach(([state, books]) => {
-                  books.forEach((book: any) => {
-                      listBooks_.push(book);
-                  });
-              });
-              setlistBooks(listBooks_);
-              } catch (error) {
-              console.error('Error al obtener libros:', error);
-              }
-          };
-
-          fetchBooks();
-      }, [])
-    );
-
-  return (
-    <View style={styles.container}>
-      <ScrollView>
-        <Header 
-          title="Biblioteca"
-          subtitle="Aquí puedes ver tus libros."
-          onLogout={null}
-        />
-        <LabelStateFilter bookState={bookState} onStateChange={handleStateChange}></LabelStateFilter>
-        <SectionBookList title="" bookList={listBooks}/>
-      </ScrollView>
-    </View>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: Colors.lighter,
-    marginTop: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
-  stateLabelContainer: {
-      marginVertical: 8,
-      alignSelf: 'flex-start',
-      backgroundColor: Colors.secondary,
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 8,
-    },
-    stateLabel: {
-      color: '#fff',
-      fontSize: 14,
-      fontWeight: 'bold',
-    },
-    descriptionLong: {
-      marginTop: 8,
-      fontSize: 16,
-      marginBottom: 8,
-      maxHeight: 100,
-      overflow: 'hidden',
-    },
-    bgToReadLabel:{
-      backgroundColor: Colors.state_toread,
-    },
-    bgReadLabel:{
-      backgroundColor: Colors.state_read,
-    },
-    bgReadingLabel:{
-      backgroundColor: Colors.state_reading,
-    }
-});
-
 const stylesBookCard = StyleSheet.create({
   bookCardContainer: {
     flexDirection: 'row',
@@ -341,6 +292,53 @@ const CardHomeStyles = StyleSheet.create({
   },
 });
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: Colors.lighter,
+    marginTop: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  stateLabelContainer: {
+      marginVertical: 8,
+      alignSelf: 'flex-start',
+      backgroundColor: Colors.secondary,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    stateLabel: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    descriptionLong: {
+      marginTop: 8,
+      fontSize: 16,
+      marginBottom: 8,
+      maxHeight: 100,
+      overflow: 'hidden',
+    },
+    bgToReadLabel:{
+      backgroundColor: Colors.state_toread,
+    },
+    bgReadLabel:{
+      backgroundColor: Colors.state_read,
+    },
+    bgReadingLabel:{
+      backgroundColor: Colors.state_reading,
+    }
+});
+
 const StylesLabelStateFilter = StyleSheet.create({
   bottonStateLabelContainer: {
     marginVertical: 8,
@@ -355,6 +353,5 @@ const StylesLabelStateFilter = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
 
 export default LibraryScreen;
