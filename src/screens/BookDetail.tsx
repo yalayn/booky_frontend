@@ -9,6 +9,183 @@ import { registerReviewBook } from '../api/reviewService';
 import Toast from 'react-native-toast-message';
 import ReviewModal from '../components/ReviewModal';
 import { useNavigation } from '@react-navigation/native';
+import Loading from '../components/Loading';
+
+const BookDetail = ({ route }) => {
+  const { book } = route.params;
+
+  const [bookState, setBookState] = useState(book.state);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [rating, setRating] = useState(book.rating || 1);
+  const [review, setReview] = useState(book.review || '');
+  const [loading, setLoading] = useState(false);
+
+  const navigation = useNavigation();
+  
+  const handleStateChange = async (newState) => {
+    setLoading(true);
+    try{
+      const response = await updateStateBook({ book_id: book.book_id, new_state: newState });
+      if(!response.success) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo cambiar el estado del libro.', });
+        setLoading(false);
+        return;
+      }
+
+      Toast.show({ type: 'success', text1: 'Estado actualizado', text2: 'El estado del libro se actualizó correctamente.', });
+      setBookState(newState);
+    } catch (error) {
+      console.error('Error al cambiar el estado del libro:', error);
+      Toast.show({ type : 'error', text1: 'Error', text2: 'No se pudo cambiar el estado del libro.', });
+      return;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBook = async () => {
+    setLoading(true);
+    try{
+      const response = await deleteBook({ book_id: book.book_id });
+      if(!response.success) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo eliminar el libro.', });
+        setLoading(false);
+        return;
+      }
+      Toast.show({ type: 'success', text1: 'Libro eliminado', text2: 'El libro se eliminó correctamente.', });
+      navigation.navigate('Library');
+    } catch (error) {
+      console.error('Error al cambiar el estado del libro:', error);
+      Toast.show({ type : 'error', text1: 'Error', text2: 'No se pudo eliminar el libro.', });
+      return;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleReviewSubmit = async (newRating, newReview) => {
+    setLoading(true);
+
+    if (newRating < 1 || newRating > 5) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'La calificación debe estar entre 1 y 5.', });
+      setLoading(false);
+      return;
+    }
+
+    if (newReview.trim() === '') {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'La reseña no puede estar vacía.', });
+      setLoading(false);
+      return;
+    }
+
+    if (newReview.length > 500) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'La reseña no puede exceder los 500 caracteres.', });
+      setLoading(false);
+      return;
+    }
+    
+    try{
+      const response = await registerReviewBook({ book_id: book.book_id, rating: newRating, review_text: newReview });
+      if (!response.success) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo registrar la reseña del libro.', });
+        setLoading(false);
+        return;
+      }
+      Toast.show({ type: 'success', text1: 'Reseña registrada', text2: 'La reseña del libro se registró correctamente.', });
+      setRating(newRating);
+      setReview(newReview);
+    } catch (error) {
+      console.error('Error al registrar la reseña del libro:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo registrar la reseña del libro.', });
+      return;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView>
+      <View style={styles.container}>
+        {/* Bloqueo de pantalla con spinner */}
+        {loading && (<Loading />)}
+
+        {/* Botón para regresar */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="close" size={20} color={Colors.white} />
+        </TouchableOpacity>
+
+        {/* Label de estado */}
+        <LabelState bookState={bookState} onStateChange={handleStateChange} />
+
+        {/* Card principal */}
+        <View style={styles.bookSetionMain}>
+          <View style={styles.bookSetionMainContainer}>
+            <View style={styles.bookCoverContainer}>
+              <Image
+                source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
+                style={styles.bookCover}
+              />
+            </View>
+            <View style={styles.bookDetailsContainer}>
+                <Text style={styles.bookTitle}>{book.title}</Text>
+                <Text style={styles.bookSubtitle}>{book.author}</Text>
+                <LabelGenre listGenre={book.genre}></LabelGenre>
+                <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
+            </View>
+          </View>
+        </View>
+
+        {/* Card reseña */}
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <Card style={CardStyles.cardSpacing}>
+            <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.white} /> </Text>
+            <CardContent>
+              <Text style={styles.bookReview}>Mi reseña:</Text>
+              <Text style={[styles.bookReview, styles.italics]}>
+                {Array.from({ length: rating }, (_, index) => (
+                  <Icon key={index} name="star" size={16} color={Colors.star} />
+                ))}
+              </Text>
+              <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
+            </CardContent>
+          </Card>
+        </TouchableOpacity>
+        <ReviewModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onSubmit={handleReviewSubmit}
+          initialRating={rating}
+          initialReview={review}
+        />
+        
+        {/* Card detalles */}
+        <Card style={CardStyles.cardSpacing}>
+          <CardContent>
+            <Text style={styles.title}>Detalles</Text>
+            <Text style={styles.bookDetail}>
+              <Text style={{ fontWeight: 'bold' }}>Autor: </Text> {book.author}
+            </Text>
+            <Text style={styles.bookDetail}>
+              <Text style={{ fontWeight: 'bold' }}>Editorial: </Text> {book.editorial}
+            </Text>
+            <Text style={styles.bookDetail}>
+              <Text style={{ fontWeight: 'bold' }}>Fecha de publicación: </Text> {book.publication_year}
+            </Text>
+            <Text style={[styles.bookDetail]}>
+              <Text style={{ fontWeight: 'bold' }}>ISBN: </Text>{book.isbn}
+            </Text>
+            {book.descriptions_long ? (
+            <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
+            ) : null}
+          </CardContent>
+        </Card>
+        
+        {/* Botón para eliminar el libro */}
+        <BottonDeleteUserBook onDeleteBook={handleDeleteBook}/>
+      </View>
+    </ScrollView>
+  );
+};
 
 const TextDescriptionShort = ({text}) => {
   return (
@@ -147,163 +324,6 @@ const BottonDeleteUserBook = ({onDeleteBook}) => {
     </View>
   )
 }
-
-
-const BookDetail = ({ route }) => {
-  const { book } = route.params;
-
-  const [bookState, setBookState] = useState(book.state);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [rating, setRating] = useState(book.rating || 1);
-  const [review, setReview] = useState(book.review || '');
-
-  const navigation = useNavigation();
-
-  const handleStateChange = (newState) => {
-    updateStateBook({ book_id: book.book_id, new_state: newState })
-      .then(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Estado actualizado',
-          text2: 'El estado del libro se actualizó correctamente.',
-        });
-        setBookState(newState);
-      })
-      .catch((error) => {
-        Toast.show({
-          type : 'error',
-          text1: 'Error',
-          text2: 'No se pudo actualizar el estado del libro.',
-        });
-        console.error('Error al actualizar el estado del libro:', error);
-      });
-  };
-
-  const handleDeleteBook = () => {
-    console.log('Eliminando libro con ID:', book.book_id);
-    deleteBook({ book_id: book.book_id })
-      .then(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Libro eliminado',
-          text2: 'El libro se eliminó correctamente.',
-        });
-        navigation.navigate('Library'); // Redirige a LibraryScreen
-      })
-      .catch((error) => {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'No se pudo eliminar el libro.',
-        });
-        console.error('Error al eliminar el libro:', error);
-      });
-  }
-
-  const handleReviewSubmit = (newRating, newReview) => {
-    registerReviewBook({ book_id: book.book_id, rating: newRating, review_text: newReview })
-      .then(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Reseña actualizada',
-          text2: 'La reseña del libro se actualizó correctamente.',
-        });
-        setRating(newRating);
-        setReview(newReview);
-      })
-      .catch((error) => {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'No se pudo actualizar la reseña del libro.',
-        });
-        console.error('Error al actualizar la reseña del libro:', error);
-      });
-  };
-
-  return (
-    <ScrollView>
-      <View style={styles.container}>
-      {/* Botón para regresar */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Icon name="close" size={20} color={Colors.white} />
-      </TouchableOpacity>
-
-      {/* Label de estado */}
-      <LabelState bookState={bookState} onStateChange={handleStateChange} />
-
-      {/* Card principal */}
-      <View style={styles.bookSetionMain}>
-        <View style={styles.bookSetionMainContainer}>
-          <View style={styles.bookCoverContainer}>
-            <Image
-              source={{ uri: book.cover_url || 'https://via.placeholder.com/150' }} // Fallback image
-              style={styles.bookCover}
-            />
-          </View>
-          <View style={styles.bookDetailsContainer}>
-              <Text style={styles.bookTitle}>{book.title}</Text>
-              <Text style={styles.bookSubtitle}>{book.author}</Text>
-              <LabelGenre listGenre={book.genre}></LabelGenre>
-              <TextDescriptionShort text={book.descriptions_short}></TextDescriptionShort> 
-          </View>
-        </View>
-      </View>
-
-      {/* Card reseña */}
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <Card style={CardStyles.cardSpacing}>
-          <Text style={styles.iconEditReview}> <Icon name="edit" size={20} color={Colors.white} /> </Text>
-          <CardContent>
-            <Text style={styles.bookReview}>Mi reseña:</Text>
-            <Text style={[styles.bookReview, styles.italics]}>
-              {Array.from({ length: rating }, (_, index) => (
-                <Icon key={index} name="star" size={16} color={Colors.star} />
-              ))}
-            </Text>
-            <Text style={[styles.bookReview, styles.italics]}>"{review || 'No disponible'}"</Text>
-          </CardContent>
-        </Card>
-      </TouchableOpacity>
-      <ReviewModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSubmit={handleReviewSubmit}
-        initialRating={rating}
-        initialReview={review}
-      />
-      
-      {/* Card detalles */}
-      <Card style={CardStyles.cardSpacing}>
-        <CardContent>
-          <Text style={styles.title}>Detalles</Text>
-          <Text style={styles.bookDetail}>
-            <Text style={{ fontWeight: 'bold' }}>Autor: </Text> {book.author}
-          </Text>
-          <Text style={styles.bookDetail}>
-            <Text style={{ fontWeight: 'bold' }}>Editorial: </Text> {book.editorial}
-          </Text>
-          <Text style={styles.bookDetail}>
-            <Text style={{ fontWeight: 'bold' }}>Fecha de publicación: </Text> {book.publication_year}
-          </Text>
-          <Text style={[styles.bookDetail]}>
-            <Text style={{ fontWeight: 'bold' }}>ISBN: </Text>{book.isbn}
-          </Text>
-          {book.descriptions_long ? (
-          <Text style={styles.bookDetail}>{book.descriptions_long}</Text>
-          ) : null}
-        </CardContent>
-      </Card>
-      
-      {/* Botón para eliminar el libro */}
-      <BottonDeleteUserBook onDeleteBook={handleDeleteBook}/>
-
-    </View>
-
-
-    </ScrollView>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {
