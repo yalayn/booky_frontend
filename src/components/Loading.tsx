@@ -9,7 +9,7 @@ import { Colors } from '../styles/AppStyles';
 const Loading = () => {
   return (
     <View style={Styles.layerLoading}>
-        <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 20 }} />
+        <ActivityIndicator size="large" color={Colors.white} style={{ marginVertical: 20 }} />
     </View>
   );
 }
