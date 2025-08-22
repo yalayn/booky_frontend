@@ -7,16 +7,17 @@ import { searchBook, addBook } from '../api/bookService';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
+import Toast from 'react-native-toast-message';
+import Loading from '../components/Loading';
 
 
 const SearchScreen = () => {
-  const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [loadingList, setLoadingList] = useState(false);
   const [loading, setLoading] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const cancelTokenRef = useRef<any>(null);
 
   const fetchBooks = async (query: string) => {
@@ -31,7 +32,7 @@ const SearchScreen = () => {
     }
     cancelTokenRef.current = axios.CancelToken.source();
 
-    setLoading(true); // Inicia el indicador de carga
+    setLoadingList(true); // Inicia el indicador de carga
     try {
       console.log('Buscando libros con query:', query);
       const books = await searchBook(query, cancelTokenRef.current.token);
@@ -46,20 +47,33 @@ const SearchScreen = () => {
         Alert.alert('Error', 'No se pudo realizar la búsqueda. Inténtalo de nuevo más tarde.');
       }
     } finally {
-      setLoading(false); // Detiene el indicador de carga
+      setLoadingList(false); // Detiene el indicador de carga
     }
   };
 
-  const handleAddToLibrary = () => {
-    addBook(selectedBook)
-    .then(() => {
-        Alert.alert('Listo. \n Libro agregado a tu biblioteca.');
-      })
-      .catch((error) => {
-        console.error('Error al agregar el libro a la biblioteca:', error);
-        Alert.alert('Error', 'No se pudo agregar el libro a la biblioteca. Inténtalo de nuevo más tarde.');
-      });
-    setModalVisible(false);
+  const handleAddToLibrary = async () => {
+    setLoading(true);
+    try {
+      if (!selectedBook) {
+        Toast.show({ type: 'error', text1: 'No hay libro seleccionado.', });
+        return;
+      }
+      const response = await addBook(selectedBook);
+      if (!response.success) {
+        console.error('Error al agregar el libro a la biblioteca:', response.message);
+        Toast.show({ type: 'error', text1: 'No se pudo agregar el libro a la biblioteca. Inténtalo de nuevo más tarde.', });
+        setLoading(false);
+        return;
+      }
+      Toast.show({ type: 'success', text1: 'Libro agregado a la biblioteca.', });
+    } catch (error) {
+      console.error('Error al agregar el libro a la biblioteca:', error);
+      Toast.show({ type: 'error', text1: 'No se pudo agregar el libro a la biblioteca. Inténtalo de nuevo más tarde.', });
+      return;
+    } finally {
+      setLoading(false);
+      setModalVisible(false);
+    }
   };
 
   const renderBookItem = ({ item }) => (
@@ -78,6 +92,9 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Bloqueo de pantalla con spinner */}
+      {loading && <Loading />}
+
       <Header title="Buscar Libros" subtitle="Encuentra tu próximo libro" onLogout={null}/>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
         <TextInput
@@ -102,7 +119,7 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {loadingList ? (
       <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 20 }} />
       ) : (
       <FlatList
