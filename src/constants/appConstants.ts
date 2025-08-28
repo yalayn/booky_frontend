@@ -6,6 +6,14 @@ export const GOAL = {
     'TOTAL_BOOKS': 'total_books',
     'CUSTOM'     : 'custom',
 };
+export const BOOK_STATE = {
+    'TO_READ'  : 'to_read',
+    'READING'  : 'reading',
+    'COMPLETED': 'completed',
+    'DROPPED'  : 'dropped',
+    'ON_HOLD'  : 'on_hold',
+};
+export const LIMIT_PAGE = 10;
 export const MAX_BOOKS_PER_USER = 100;
 export const DEFAULT_CHART_HEIGHT = 220;
 export const API_TIMEOUT = 10000;
