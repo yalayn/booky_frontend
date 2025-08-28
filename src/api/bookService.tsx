@@ -1,6 +1,11 @@
 // src/api/bookService.ts
 import httpClient from './httpClient';
 
+export const getListBooks = async (params: any) => {
+  const response = await httpClient.get(`/userbook/list?page=${params.page}&limit=${params.limit}`);
+  return response.data;
+};
+
 export const getBooks = async () => {
   const response = await httpClient.get('/userbook/list_by_state');
   return response.data;
