@@ -1,59 +1,93 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal } from 'react-native';
-import { getBooks } from "../api/bookService";
+import { View, Text, StyleSheet, FlatList, Modal, ActivityIndicator,TouchableOpacity, Image } from 'react-native';
+import { getListBooks } from "../api/bookService";
 import { SectionList, SectionListContent } from '../components/SectionList';
 import { Colors, SectionListStyles } from '../styles/AppStyles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, Image } from 'react-native';
 import StylesModal from "../styles/StylesModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../components/Header';
 
+const LIMIT_PAGE = 10;
+
 const LibraryScreen = () => {
-  const [listBooks, setlistBooks] = useState([]);
+  const [listBooks, setListBooks] = useState([]);
   const [bookState, setBookState] = useState('all'); // Estado inicial del filtro
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const handleStateChange = (newState: any) => {
       setBookState(newState); // Actualiza el estado del filtro
   };
 
+
+  const fetchBooks = async (pageNumber = 1) => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const response = await getListBooks({ page: pageNumber, limit: LIMIT_PAGE });
+      if (!response.success) {
+        console.error("Error al obtener libros:", response.message);
+        return;
+      }
+      const newBooks = response.data;
+      setHasMore(newBooks.length === LIMIT_PAGE); // si recibes menos de LIMIT_PAGE, no hay más
+      setListBooks(prev => (pageNumber === 1 ? newBooks : [...prev, ...newBooks]));
+      setPage(pageNumber);
+    } catch (error) {
+      console.error("Error al obtener libros:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      fetchBooks(page + 1);
+    }
+  };
+
   useFocusEffect(
       React.useCallback(() => {
-        const fetchBooks = async () => {
-            try {
-            const listBooks_ = [];
-            const data = await getBooks();
-            Object.entries(data).forEach(([state, books]) => {
-                books.forEach((book: any) => {
-                    listBooks_.push(book);
-                });
-            });
-            setlistBooks(listBooks_);
-            } catch (error) {
-            console.error('Error al obtener libros:', error);
-            }
-        };
-
         fetchBooks();
     }, [])
   );
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Header 
-          title="Biblioteca"
-          subtitle="Aquí puedes ver tus libros."
-          onLogout={null}
-        />
-        <LabelStateFilter bookState={bookState} onStateChange={handleStateChange}></LabelStateFilter>
-        <SectionBookList title="" bookList={listBooks}/>
-      </ScrollView>
+      <Header
+        title="Biblioteca"
+        subtitle="Aquí puedes ver tus libros."
+        onLogout={null}
+      />
+
+      <LabelStateFilter
+        bookState={bookState}
+        onStateChange={setBookState}
+      />
+
+      <FlatList
+        data={listBooks}
+        keyExtractor={(item, index) => `${item.id || index}`}
+        renderItem={({ item }) => <BookCard book={item} />}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? (
+            <View style={{ padding: 20 }}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 };
 
 const SectionBookList = ({ title, bookList }) => {
+    console.log('Rendering SectionBookList with title:', title);
+    console.log('Book list:', bookList);
     return (
         <SectionList style={SectionListStyles.cardSpacing}>
         <SectionListContent>
