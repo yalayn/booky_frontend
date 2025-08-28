@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Modal, ActivityIndicator } from "react-native";
 import Toast from 'react-native-toast-message';
-import { getBooks } from "../api/bookService";
+import { getListBooks } from "../api/bookService";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Colors, CardStyles, SectionListStyles} from "../styles/AppStyles";
 import StylesModal from "../styles/StylesModal";
@@ -15,6 +15,7 @@ import { initLogout } from "../api/loginService";
 import { GOAL } from "../constants/appConstants";
 import { getUserGoal } from "../api/goalService";
 import Loading from "../components/Loading";
+import { BOOK_STATE, LIMIT_PAGE } from "../constants/appConstants";
 
 /**
  * Componente principal del rastreador de libros
@@ -32,6 +33,9 @@ const HomeScreenMain = ({onLogout}) => {
   const [userGoalModalVisible, setUserGoalModalVisible] = useState(false);
   const [progressValue, setProgressValue]   = useState(0);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [listBooks, setListBooks] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
 
   const handleRegisterTime = (book:any) => {
     setSelectedBook(book);
@@ -118,6 +122,53 @@ const HomeScreenMain = ({onLogout}) => {
   }, []);
 
   /**
+   * Función para obtener la lista de libros del usuario
+   * y actualizar el estado de los libros en curso
+   * @param pageNumber Número de página para la paginación (por defecto es 1)
+   * @returns {void}
+   */
+  const fetchBooks = async (pageNumber = 1) => {
+    try {
+      const response = await getListBooks({ page: pageNumber, limit: LIMIT_PAGE, state: BOOK_STATE.READING });
+      if (!response.success) {
+        console.error("Error al obtener libros:", response.message);
+        return;
+      }
+      const newBooks = response.data;
+      setHasMore(newBooks.length === LIMIT_PAGE); // si recibes menos de LIMIT_PAGE, no hay más
+      setListBooks(prev => (pageNumber === 1 ? newBooks : [...prev, ...newBooks]));
+      setPage(pageNumber);
+    } catch (error) {
+      console.error('Error al obtener libros:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserCountDay = async () => {
+    try {
+        const dataUserCountDay = await getReadingSessionsToday();
+        if (!dataUserCountDay || !dataUserCountDay.data) {
+          setReadingTime(0);
+          return;
+        }
+        const seconds     = dataUserCountDay?.data?.seconds || 0;
+        const goalSeconds = await AsyncStorage.getItem('user_goal_seconds') || '0';
+        setGoalTime(parseInt(goalSeconds));
+        setProgressValue((seconds * 100) / parseInt(goalSeconds));
+        setReadingTime(parseInt(seconds));
+    } catch (error) {
+      console.error('Error al obtener el conteo diario del usuario:', error);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      fetchBooks(page + 1);
+    }
+  };
+
+  /**
    * Efecto para obtener la lista de libros del usuario
    * y actualizar la lista de libros en curso
    * Este efecto se ejecuta cada vez que la pantalla gana el foco.
@@ -126,40 +177,6 @@ const HomeScreenMain = ({onLogout}) => {
    */
   useFocusEffect(
     React.useCallback(() => {
-
-      const fetchBooks = async () => {
-        try {
-          const listBooks = {};
-          const data = await getBooks();
-          Object.entries(data).forEach(([state, books]) => {
-            listBooks[state] = [];
-            books.forEach((book: any) => {
-              listBooks[state].push(book);
-            });
-          });
-          setBooksReading(listBooks["reading"]);
-        } catch (error) {
-          console.error('Error al obtener libros:', error);
-        }
-      };
-
-      const fetchUserCountDay = async () => {
-        try {
-            const dataUserCountDay = await getReadingSessionsToday();
-            if (!dataUserCountDay || !dataUserCountDay.data) {
-              setReadingTime(0);
-              return;
-            }
-            const seconds     = dataUserCountDay?.data?.seconds || 0;
-            const goalSeconds = await AsyncStorage.getItem('user_goal_seconds') || '0';
-            setGoalTime(parseInt(goalSeconds));
-            setProgressValue((seconds * 100) / parseInt(goalSeconds));
-            setReadingTime(parseInt(seconds));
-        } catch (error) {
-          console.error('Error al obtener el conteo diario del usuario:', error);
-        }
-      };
-
       fetchBooks();
       fetchUserCountDay();
     }, [])
@@ -171,17 +188,28 @@ const HomeScreenMain = ({onLogout}) => {
       {/* Bloqueo de pantalla con spinner */}
       {loading && (<Loading />)}
       {/* Botón para regresar */}
-      <ScrollView>
-        <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
-        <ProgressSummary navigation={navigation} readingTime={readingTime} goalTime={goalTime} progressValue={progressValue} handleModalGoal={() => setUserGoalModalVisible(true)}/>
-        <ReadingTimerModal
-          visible={timerModalVisible}
-          onClose={() => setTimerModalVisible(false)}
-          onFinish={handleTimerFinish}
-          book={selectedBook}
-        />
-        <SectionBookList title="En curso" bookList={booksReading} onRegisterTime={handleRegisterTime} navigation={navigation}/>
-      </ScrollView>
+      <Header title="Inicio" subtitle={subtitle} onLogout={handleLogout} />
+      <ProgressSummary navigation={navigation} readingTime={readingTime} goalTime={goalTime} progressValue={progressValue} handleModalGoal={() => setUserGoalModalVisible(true)}/>
+      <ReadingTimerModal
+        visible={timerModalVisible}
+        onClose={() => setTimerModalVisible(false)}
+        onFinish={handleTimerFinish}
+        book={selectedBook}
+      />
+      <FlatList
+        data={listBooks}
+        keyExtractor={(item, index) => `${item.id || index}`}
+        renderItem={({ item }) => <BookCard key={item.id} book={item} onRegisterTime={handleRegisterTime} navigation={navigation} />}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? (
+            <View style={{ padding: 20 }}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 };
@@ -292,6 +320,7 @@ const formatReadingTime = (readingTimeSeconds: number) => {
  */
 const SectionBookList = ({ title, bookList, onRegisterTime, navigation }) => {
   return (
+
     <SectionList style={SectionListStyles.cardSpacing}>
       <SectionListContent>
         <Text style={SectionListStyles.title}>{title}</Text>
