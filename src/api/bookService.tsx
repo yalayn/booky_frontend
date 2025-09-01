@@ -7,6 +7,11 @@ export const getListBooks = async (params: any) => {
   return response.data;
 };
 
+export const getListBooksSearch = async (query: string, params: any) => {
+  const response = await httpClient.get(`/userbook/find?${params.page}&limit=${params.limit}&search=${query}`);
+  return response.data;
+};
+
 export const getBooks = async () => {
   const response = await httpClient.get('/userbook/list_by_state');
   return response.data;

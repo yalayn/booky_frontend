@@ -15,6 +15,7 @@ const LibraryScreen = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [searchText, setSearchText] = useState('');
 
   const fetchBooks = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
     if (loading || !hasMore) return;
@@ -36,6 +37,35 @@ const LibraryScreen = () => {
       setPage(pageNumber);
     } catch (error) {
       console.error("Error al obtener libros:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Nueva función para buscar libros
+  const handleSearch = async (query: string) => {
+    setSearchText(query);
+    if (query.trim() === '') {
+      fetchBooks(1, bookState);
+      return;
+    }
+    setLoading(true);
+    setBookState(BOOK_STATE.ALL);
+    try {
+      const response = await getListBooksSearch(query,{ page: 1, limit: LIMIT_PAGE });
+      if (!response.success) {
+        console.error("Error al buscar libros:", response.message);
+        setListBooks([]);
+        setHasMore(false);
+        return;
+      } 
+      setListBooks(response.data);
+      setHasMore(response.data.length === LIMIT_PAGE);
+      setPage(1);
+    } catch (error) {
+      console.error("Error al buscar libros:", error);
+      setListBooks([]);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -66,6 +96,20 @@ const LibraryScreen = () => {
         subtitle="Aquí puedes ver tus libros."
         onLogout={null}
       />
+
+      {/* Campo de búsqueda */}
+      <View style={{ marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ccc', paddingHorizontal: 8 }}>
+          <Icon name="search" size={18} color="#666" style={{ marginRight: 8 }} />
+          <TextInput
+            style={{ flex: 1, height: 40 }}
+            placeholder="Buscar libros..."
+            value={searchText}
+            onChangeText={handleSearch}
+            returnKeyType="search"
+          />
+        </View>
+      </View>
 
       <LabelStateFilter
         bookState={bookState}
