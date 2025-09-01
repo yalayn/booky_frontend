@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Modal, ActivityIndicator,TouchableOpacity, Image } from 'react-native';
-import { getListBooks } from "../api/bookService";
-import { SectionList, SectionListContent } from '../components/SectionList';
-import { Colors, SectionListStyles } from '../styles/AppStyles';
+import { View, Text, StyleSheet, FlatList, Modal, ActivityIndicator,TouchableOpacity, Image, TextInput } from 'react-native';
+import { getListBooks, getListBooksSearch } from "../api/bookService";
+import { Colors } from '../styles/AppStyles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import StylesModal from "../styles/StylesModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -134,21 +133,6 @@ const LibraryScreen = () => {
   );
 };
 
-const SectionBookList = ({ title, bookList }) => {
-    console.log('Rendering SectionBookList with title:', title);
-    console.log('Book list:', bookList);
-    return (
-        <SectionList style={SectionListStyles.cardSpacing}>
-        <SectionListContent>
-            <Text style={SectionListStyles.title}>{title}</Text>
-            {bookList.map((book, index) => (
-                <BookCard key={index} book={book}/>
-            ))}
-        </SectionListContent>
-        </SectionList>
-    );
-}
-
 const LabelState = ({bookState}) => {
 
   const STATES_NAME = {
@@ -219,16 +203,16 @@ const LabelStateFilter = ({ bookState, onStateChange }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const STATES_NAME = {
-    'all'    : 'Todos',
-    'to_read': 'Pendiente',
-    'reading': 'En curso',
-    'read'   : 'Terminado',
+    [BOOK_STATE.ALL]    : 'Todos',
+    [BOOK_STATE.TO_READ]: 'Pendiente',
+    [BOOK_STATE.READING]: 'En curso',
+    [BOOK_STATE.READ]   : 'Terminado',
   };
 
   const STATE_BG_COLOR = {
-    'read'   : styles.bgReadLabel,
-    'to_read': styles.bgToReadLabel,
-    'reading': styles.bgReadingLabel,
+    [BOOK_STATE.READ]   : styles.bgReadLabel,
+    [BOOK_STATE.TO_READ]: styles.bgToReadLabel,
+    [BOOK_STATE.READING]: styles.bgReadingLabel,
   };
 
   const stateStyle      = STATE_BG_COLOR[bookState] || styles.bgReadLabel;
@@ -242,14 +226,13 @@ const LabelStateFilter = ({ bookState, onStateChange }) => {
   return (
     <>
       {/* Label */}
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
         <View style={[StylesLabelStateFilter.bottonStateLabelContainer, stateStyle]}>
-          <Text style={StylesLabelStateFilter.bottoonStateLabel}>
-            {stateName} <Icon name="caret-down" size={14} color="#fff" />
-          </Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={StylesLabelStateFilter.bottoonStateLabel}>
+              {stateName} <Icon name="caret-down" size={14} color="#fff" />
+            </Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-
       {/* Modal */}
       <Modal
         animationType="slide"
