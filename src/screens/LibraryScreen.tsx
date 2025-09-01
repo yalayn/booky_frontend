@@ -7,8 +7,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import StylesModal from "../styles/StylesModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../components/Header';
-
-const LIMIT_PAGE = 10;
+import { BOOK_STATE, LIMIT_PAGE } from '../constants/appConstants';
 
 const LibraryScreen = () => {
   const [listBooks, setListBooks] = useState([]);
@@ -17,23 +16,23 @@ const LibraryScreen = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const handleStateChange = (newState: any) => {
-      setBookState(newState); // Actualiza el estado del filtro
+  const fetchBooks = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
+    if (loading || !hasMore) return;
+    getListBookServices(pageNumber, state);
   };
 
-
-  const fetchBooks = async (pageNumber = 1) => {
-    if (loading || !hasMore) return;
+  const getListBookServices = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
     setLoading(true);
     try {
-      const response = await getListBooks({ page: pageNumber, limit: LIMIT_PAGE });
+      const response = await getListBooks({ page: pageNumber, limit: LIMIT_PAGE, state: state });
       if (!response.success) {
         console.error("Error al obtener libros:", response.message);
         return;
       }
       const newBooks = response.data;
-      setHasMore(newBooks.length === LIMIT_PAGE); // si recibes menos de LIMIT_PAGE, no hay más
+      setHasMore(newBooks.length === LIMIT_PAGE);
       setListBooks(prev => (pageNumber === 1 ? newBooks : [...prev, ...newBooks]));
+      setBookState(state);
       setPage(pageNumber);
     } catch (error) {
       console.error("Error al obtener libros:", error);
@@ -42,9 +41,15 @@ const LibraryScreen = () => {
     }
   };
 
+  const handleStateChange = async (state: any) => {
+    const pageNumber = 1;
+    getListBookServices(pageNumber, state);
+  };
+
   const handleLoadMore = () => {
+    console.log("handleLoadMore", { loading, hasMore });
     if (!loading && hasMore) {
-      fetchBooks(page + 1);
+      fetchBooks(page + 1, bookState);
     }
   };
 
@@ -64,7 +69,7 @@ const LibraryScreen = () => {
 
       <LabelStateFilter
         bookState={bookState}
-        onStateChange={setBookState}
+        onStateChange={handleStateChange}
       />
 
       <FlatList
@@ -101,25 +106,26 @@ const SectionBookList = ({ title, bookList }) => {
 }
 
 const LabelState = ({bookState}) => {
-    const STATES_NAME = {
-      'to_read': 'Pendiente',
-      'reading': 'En curso',
-      'read'   : 'Terminado',
-    };
-    
-    const STATE_BG_COLOR = {
-        'read'   : styles.bgReadLabel,
-        'to_read': styles.bgToReadLabel,
-        'reading': styles.bgReadingLabel
-    }
-    const stateStyle      = STATE_BG_COLOR[bookState] || styles.bgReadLabel;
-    const stateLabelStyle = [styles.stateLabelContainer, stateStyle];
-    const stateName       = STATES_NAME[bookState] || 'Estado desconocido';
-    return (
-      <View style={stateLabelStyle}>
-        <Text style={styles.stateLabel}>{stateName}</Text>
-      </View>
-    );
+
+  const STATES_NAME = {
+    [BOOK_STATE.TO_READ]: 'Pendiente',
+    [BOOK_STATE.READING]: 'En curso',
+    [BOOK_STATE.READ]   : 'Terminado'
+  };
+  
+  const STATE_BG_COLOR = {
+      [BOOK_STATE.TO_READ]: styles.bgReadLabel,
+      [BOOK_STATE.READING]: styles.bgToReadLabel,
+      [BOOK_STATE.READ]   : styles.bgReadingLabel
+  }
+  const stateStyle      = STATE_BG_COLOR[bookState] || styles.bgReadLabel;
+  const stateLabelStyle = [styles.stateLabelContainer, stateStyle];
+  const stateName       = STATES_NAME[bookState] || 'Estado desconocido';
+  return (
+    <View style={stateLabelStyle}>
+      <Text style={styles.stateLabel}>{stateName}</Text>
+    </View>
+  );
 };
 
 const CardHome = ({ children, style }) => {
@@ -176,7 +182,7 @@ const LabelStateFilter = ({ bookState, onStateChange }) => {
   };
 
   const STATE_BG_COLOR = {
-    'read': styles.bgReadLabel,
+    'read'   : styles.bgReadLabel,
     'to_read': styles.bgToReadLabel,
     'reading': styles.bgReadingLabel,
   };

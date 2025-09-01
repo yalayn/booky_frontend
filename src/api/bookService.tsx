@@ -2,7 +2,8 @@
 import httpClient from './httpClient';
 
 export const getListBooks = async (params: any) => {
-  const response = await httpClient.get(`/userbook/list?page=${params.page}&limit=${params.limit}`);
+  const params_state = params.state ? `&state=${params.state}`: '';
+  const response     = await httpClient.get(`/userbook/list?page=${params.page}&limit=${params.limit}${params_state}`);
   return response.data;
 };
 
