@@ -16,11 +16,6 @@ const LibraryScreen = () => {
   const [hasMore, setHasMore] = useState(true);
   const [searchText, setSearchText] = useState('');
 
-  const fetchBooks = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
-    if (loading || !hasMore) return;
-    getListBookServices(pageNumber, state);
-  };
-
   const getListBookServices = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
     setLoading(true);
     try {
@@ -41,11 +36,16 @@ const LibraryScreen = () => {
     }
   };
 
+  const fetchBooks = async (pageNumber = 1, state = BOOK_STATE.ALL) => {
+    if (loading || !hasMore) return;
+    getListBookServices(pageNumber, state);
+  };
+
   // Nueva función para buscar libros
   const handleSearch = async (query: string) => {
     setSearchText(query);
     if (query.trim() === '') {
-      fetchBooks(1, bookState);
+      fetchBooks(1);
       return;
     }
     setLoading(true);
