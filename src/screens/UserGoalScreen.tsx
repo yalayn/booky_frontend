@@ -47,7 +47,6 @@ const UserGoalScreen = ({navigation}) => {
       }
       Toast.show({ type: 'success', text1: 'Meta actualizada', text2: 'El estado de la meta se actualizó correctamente.', });
       await AsyncStorage.setItem('user_goal_seconds', seconds.toString());
-      console.log('usergoalscreen - user_goal_seconds storage', await AsyncStorage.getItem('user_goal_seconds'));
       setModalEditLogVisible(false);
     } catch (error) {
       console.error('Error al registrar la meta de usuario:', error);

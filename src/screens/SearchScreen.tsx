@@ -34,7 +34,6 @@ const SearchScreen = () => {
 
     setLoadingList(true); // Inicia el indicador de carga
     try {
-      console.log('Buscando libros con query:', query);
       const books = await searchBook(query, cancelTokenRef.current.token);
       const formattedBooks = books.filter((book: any) =>
         book.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -172,8 +171,8 @@ const ModalShowDetails = ({modalVisible, selectedBook, handleAddToLibrary, setMo
                   }
                   style={styles.bookCover}
                   onError={(e) => {
-                    console.log('Error al cargar la imagen:', e.nativeEvent.error);
-                    console.log('url', selectedBook.cover_url);
+                    console.error('Error al cargar la imagen:', e.nativeEvent.error);
+                    console.error('url', selectedBook.cover_url);
                   }}
                   />
                   <Text style={[styles.modalSubtitle, { fontStyle: 'italic', fontSize: 14, marginBottom: 10 }]}> ISBN: {selectedBook.isbn} </Text>

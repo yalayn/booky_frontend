@@ -76,7 +76,6 @@ const LibraryScreen = () => {
   };
 
   const handleLoadMore = () => {
-    console.log("handleLoadMore", { loading, hasMore });
     if (!loading && hasMore) {
       fetchBooks(page + 1, bookState);
     }

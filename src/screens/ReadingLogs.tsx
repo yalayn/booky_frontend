@@ -147,8 +147,6 @@ const ReadingLogs = ({ navigation }) => {
             }
             const newLogData = response.data;
             setLogs(prevLogs => [...prevLogs, { ...newLog, _id: newLogData._id, book_title: newLogData.book_title }]);
-            console.log('Registro agregado:', newLogData);
-            console.log('nuevo logs:', logs);
             Toast.show({ type: 'success', text1: 'Éxito', text2: 'Registro agregado correctamente.', });
             setModalAddLogVisible(false);
             setAddDate(new Date().toISOString().split('T')[0]);
@@ -240,7 +238,6 @@ const ReadingLogs = ({ navigation }) => {
         setModalDeleteLogVisible(false);
         setLoading(true);
         try{
-            console.log("onDeleteBook - Response:", selectedLog._id);
             const response = await deleteReadingSessions(selectedLog._id);
             if (!response.success) {
                 Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo eliminar el registro', });
